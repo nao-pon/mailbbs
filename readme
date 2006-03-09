@@ -1,0 +1,43 @@
+写メールBBSモジュール
+
+レッツPHP!　http://php.s3.to/
+のToRさん作の「写メールBBS」をXOOPSのモジュール版
+配布、改造にあたってはレッツPHP!の規定に従うものとします。
+
+■初期設定
+1. 「config.php.dev」を「config.php」にリネームしてください。
+2. 「config.php」の必須項目を設定をしてください。
+3. 「config.php」で指定した名前の空のファイルをdataディレクトリに作成する。
+　　例:「maillog.cgi」「sign.cgi」「deny.cgi」
+
+■設置方法
+1. /moduleの下に「mailbbs」ディレクトリをアップロードします。
+
+■パーミッション設定
+
+/module/mailbbs/data			(777 or 757 or 707)
+/module/mailbbs/imgs			(777 or 757 or 707)
+/module/mailbbs/imgs/s			(777 or 757 or 707)
+/module/mailbbs/headers			(777 or 757 or 707)
+
+/module/mailbbs/data/maillog.cgi		(666 or 646 or 606)
+/module/mailbbs/data/sign.cgi			(666 or 646 or 606)
+/module/mailbbs/data/deny.cgi			(666 or 646 or 606)
+
+
+■インストール
+管理メニュー → SystemAdmin → モジュール管理からインストールしてください。
+
+
+■管理画面
+管理画面はありません。承認は管理者としてログインして、写メールBBSのページより行ってください。
+
+----------------------------------------------------------------------
+■写メールBBS
+ToRさん http://php.s3.to/
+
+■newmail.php
+ahiruさん http://www3.to/KOBAYASHI/
+
+■XOOPSモジュール化
+nao-pon http://hypweb.net/xoops/

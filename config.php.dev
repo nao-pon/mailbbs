@@ -1,0 +1,172 @@
+<?php
+//-----------------------------------+
+//重要な設定（設定必須）
+//-----------------------------------+
+// POP3サーバー
+$host = 'POPサーバー名を設定';
+
+// ユーザーID
+$user = 'POPアカウント名を設定';
+
+// パスワード
+$pass = 'POPパスワードを設定';
+
+// 投稿用メアド
+$mail = 'メールアドレスを設定';
+
+// 削除パス
+$delpass = '削除用パスを設定';
+
+// 投稿データファイル(必ず変更してください）
+// ( maillog 部分の変更をお勧めします）
+$log = './data/maillog.cgi';
+
+// 署名ファイル
+// ( sign 部分の変更をお勧めします）
+$mailbbs_signs = './data/sign.cgi';
+
+// 保存拒否ログファイル
+// ( deny 部分の変更をお勧めします）
+$mailbbs_denylog = './data/deny.cgi';
+
+// 承認済みメールアドレスデータファイル
+// ( allow 部分の変更をお勧めします）
+// 承認機能を使用しない場合は '' と空にしてください
+$mailbbs_allowlog = './data/allow.cgi';
+
+// ヘッダ情報保存ファイルのプレフィクス
+// ( head 部分の変更をお勧めします）
+$mailbbs_head_prefix = 'head_';
+
+// GDのバージョン(0:なし, 1:Ver 1, 2:Ver 2)
+$mailbbs_gd = 2;
+
+//------- 以上は必ず設定 ------------+
+
+//------- 以下はお好みで ------------+
+
+//-----------------------------------+
+//共通設定
+//-----------------------------------+
+
+// デフォルトの表示モード
+//$def_mode = "list.php"; //一覧表示
+$def_mode = "flat.php"; //フラット表示
+
+// 保存拒否ログを保存する(0:しない, 1:する)
+$mailbbs_denylog_save = 1;
+
+// ヘッダ情報を保存する(0:しない, 1:する)
+$mailbbs_head_save = 1;
+
+// ヘッダ情報保存ディレクトリ
+$mailbbs_head_dir = './headers/';
+
+// 画像保存ディレクトリ
+$tmpdir  = "./imgs/";
+
+//サムネイル保存ディレクトリ
+$thumb_dir = "./imgs/s/";
+
+// サムネイル最大ピクセル
+// これ以上の大きい画像はjpg,pngのサムネイル作成
+$w = 140;
+$h = 160;
+
+// サムネイルを作る対象画像
+$thumb_ext = ".+\.jpe?g$|.+\.png$";
+
+// 署名なしの場合の名称
+$mailbbs_nosign = "匿名さん";
+
+// 利用方法はコンテンツと共に表示する = 1
+// 利用方法のみ表示する場合は 0 を指定
+$mailbbs_help_with = 0;
+
+// 承認機能を使用する場合の利用方法メッセージ
+$allow_system = "<br><span style='color:red;'>初回投稿時は管理者の承認が必要になっていますので、承認が完了するまで表示されません。</span>";
+
+// 自動POP更新タイム（分）
+// 指定時間経過後のアクセスで、自動でPOP更新する
+$mailbbs_limit_min = 30;
+
+// 投稿・コメント時のメール通知 (0:なし, 1:する)
+$notification = 1;
+
+//-----------------------------------+
+//pop.php 設定
+//-----------------------------------+
+// 最大添付量（バイト・1ファイルにつき）※超えるものは保存しない
+$maxbyte = "1000000";//1MB
+
+// ログ保存件数
+$maxline = 500;
+
+// 本文文字制限（半角で
+$body_limit = 1000;
+
+// 投稿非許可アドレス（ログに記録しない）
+$deny = array('163.com','bigfoot.com','boss.com','mine.nu','51444.tv','nyan_nyan_cat_2004@yahoo.co.jp','motto.zapto.org','i-towns.net','ori-g.net','jewelry.polty.cc','birabira4u.com','wecl-online.com');
+
+// 投稿非許可メーラー(perl互換正規表現)（ログに記録しない）
+$deny_mailer = '/(Oshirase|Microsoft\s*CDO|Mail\s*Magic|Easy\s*DM|Friend\s*Mailer|Extra\s*Japan|The\s*Bat|BSMTP|magmag|Blat|Douhou|DM\s*Mailer|IM2001|=\?ISO\-2202\-JP\?Q\?Q`dsV!0Ji;]Id9\?=)/i';
+
+// 投稿非許可タイトル(perl互換正規表現)（ログに記録しない）
+$deny_title = '/((未|末)\s?承\s?(諾|認)\s?広\s?告|相互リンク|18禁|サイトのご紹介)/i';
+
+// 投稿非許可本文(perl互換正規表現)（ログに記録しない）
+$deny_body = $deny_title;
+
+// 投稿非許可キャラクターセット(perl互換正規表現)（ログに記録しない）
+$deny_lang = '/us-ascii|big5|euc-kr|gb2312|iso-2022-kr|ks_c_5601-1987|MS932|iso-8859-1/i';
+
+// 対応MIMEタイプ（正規表現）Content-Type: image/jpegの後ろの部分。octet-streamは危険かも
+$subtype = "gif|jpe?g|png|bmp|octet-stream|x-pmd|x-mld|x-mid|x-smd|x-smaf|x-mpeg";
+
+// 保存しないファイル(正規表現)
+$viri = ".+\.exe$|.+\.zip$|.+\.pif$|.+\.scr$";
+
+// 25字以上の下線は削除（広告区切り）
+$del_ereg = "[_]{25,}";
+
+// 本文から削除する文字列
+$word[] = "会員登録は無料  充実した出品アイテムなら MSN オークション";
+$word[] = "http://auction.msn.co.jp/";
+$word[] = "Do You Yahoo!?";
+$word[] = "Yahoo! BB is Broadband by Yahoo!";
+$word[] = "http://bb.yahoo.co.jp/";
+$word[] = "友達と24時間ホットライン「MSN メッセンジャー」、今すぐダウンロード！";
+$word[] = "http://messenger.msn.co.jp";
+
+// 添付メールのみ記録する？Yes=1 No=0（本文のみはログに載せない）
+$imgonly = 0;
+
+// 件名がないときの題名
+$nosubject = "No Title";
+
+//-----------------------------------+
+//flat.php 設定
+//-----------------------------------+
+// 1ページの表示数
+$page_def_flat = 7;
+
+// Wikiヘルパーを利用する
+$use_wiki_helper = 1;
+
+//-----------------------------------+
+//list.php 設定
+//-----------------------------------+
+// 1ページの表示数(最後にタイトル+1)
+$page_def_list = 14;
+
+// １行の個数
+$return = 5;
+
+
+//-----------------------------------+
+//j.php & ez.php 設定
+//-----------------------------------+
+// 1ページの表示数
+$page_def_j = 7;
+
+?>

@@ -1,0 +1,113 @@
+/****** フラット表示 ******/
+/* BBSタイトル */
+.mailbbs_flat_title {
+	width:420px;
+	font-size:20px;
+	font-weight:700;
+	border-top:    #DDDDEE 1px solid;
+	border-bottom: #888899 1px solid;
+	border-left:   #DDDDEE 1px solid;
+	border-right:  #888899 1px solid;
+	padding: .5em;
+	background-color: #99cc99;
+	color: white;
+	margin-left:auto;
+	margin-right:auto;
+}
+/* 表示テーブル */
+.mailbbs_flat_table {
+	MARGIN-LEFT:auto;
+	MARGIN-RIGHT:auto;
+	width:420px;
+	background-color: #99cc99;
+	border:none;
+}
+/* タイトルセル */
+.mailbbs_flat_td_title {
+	padding:5px;
+	text-align:left;
+	background-color:#99cc99;
+}
+/* タイトル */
+.mailbbs_flat_span_title {
+	font-size:14px;
+	color:#ffffff;
+}
+/* 本文セル */
+.mailbbs_flat_td_body {
+	padding:5px;
+	text-align:left;
+	background-color:#ffffff;
+}
+/* 本文 */
+.mailbbs_flat_body_text {
+	text-align:left;
+	font-size:12px;
+	color:#555555;
+	line-height:1.8em;
+	letter-spacing: 0.1em;
+	padding:10px;
+}
+/* 本文日付 */
+.mailbbs_flat_body_date {
+	text-align:right;
+}
+/* コメント日付 */
+.mailbbs_flat_comment_date {
+	letter-spacing: 0em;
+	font-size: 80%;
+	color:green;
+}
+/* 画像 */
+.mailbbs_flat_img {
+	border:none;
+	float:right;
+}
+
+/****** フラット表示 ******/
+/* ナビゲーション文字 */
+.mailbbs_list_navi {
+	color:#ffffff;
+	font-size:12px;
+	font-weight:normal;
+}
+/* リンク */
+#mailbbs_list_link {
+	font-size:12px;
+	color:#ffffff;
+	font-weight:normal;
+}
+#mailbbs_list_link:hover {
+	color: yellow;
+	background-color: #000000;
+}
+/* ナビゲーションセル */
+.mailbbs_list_td_navi {
+	color:#EDEDED;
+	text-align:center;
+	background-color:#555555;
+}
+/* 表示テーブル */
+.mailbbs_list_body {
+	MARGIN-LEFT:auto;
+	MARGIN-RIGHT:auto;
+	width:auto;
+	border:none;
+	background-color:#555555;
+}
+/* 表示セル */
+.mailbbs_list_td_body {
+	text-align:center;
+	background-color:#333333;
+	vertical-align:bottom;
+}
+/* 写真タイトル */
+.mailbbs_list_title {
+	color:#BBBBBB;
+	font-size:12px;
+}
+/* 写真日付 */
+.mailbbs_list_date {
+	color:#CCCCCC;
+	font-size:9px;
+}
