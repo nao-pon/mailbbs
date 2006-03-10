@@ -48,4 +48,9 @@ $modversion['sub'][4]['url'] = "pop.php";
 $modversion['hasSearch'] = 1;
 $modversion['search']['file'] = "search.inc.php";
 $modversion['search']['func'] = "mailbbs_search";
+
+// On Update
+if( ! empty( $_POST['fct'] ) && ! empty( $_POST['op'] ) && $_POST['fct'] == 'modulesadmin' && $_POST['op'] == 'update_ok' && $_POST['dirname'] == $modversion['dirname'] ) {
+	include dirname( __FILE__ ) . "/include/onupdate.inc.php" ;
+}
 ?>
