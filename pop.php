@@ -80,8 +80,18 @@ if (isset($_GET['img'])) {
 //$jump = preg_replace("/[^\/]+$/","",$jump).$backmode;
 $jump = XOOPS_URL."/modules/mailbbs/".$backmode;
 
-// mb_関数が使えない場合http://www.spencernetwork.org/にて漢字コード変換(簡易版)を入手して下さい
-if (file_exists("jcode-LE.php")) include_once("jcode-LE.php");
+if (!extension_loaded('mbstring'))
+{
+	// mb_関数が使えない場合http://www.spencernetwork.org/にて漢字コード変換(簡易版)を入手して下さい
+	if (file_exists("jcode-LE.php"))
+	{
+		include_once("jcode-LE.php");
+	}
+	else
+	{
+		exit('This server is not support "mbstring" please upload "jcode-LE.php"(http://www.spencernetwork.org/).');
+	}
+}
 
 // 接続開始
 $sock = fsockopen($host, 110, $err, $errno, 10) or error_output("サーバーに接続できません。");
