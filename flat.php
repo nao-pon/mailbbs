@@ -276,9 +276,14 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 	// XOOPS でサニタイズ
 	$body = $myts->displayTarea(str_replace(array("&lt;","&gt;","<br />"),array("<",">","\n"),$body));
 	
-	
+	$rotate_link = "";
 	// 画像がある時IMGタグ
-	if(eregi("\.(gif|jpe?g|png|bmp)$",$att)){
+	if(eregi("\.(gif|jpe?g|png|bmp)$",$att))
+	{
+		if ($X_admin)
+		{
+			$rotate_link = "[<a href=\"rotate.php?id=$id&amp;rc=3&amp;rf={$rt_url}\" title=\"イメージ左回転\">L</a>][<a href=\"rotate.php?id=$id&amp;rc=1&amp;rf={$rt_url}\" title=\"イメージ右回転\">R</a>] ";
+		}
 		$href = $tmpdir.rawurlencode($att);
 		$psize = @GetImageSize($tmpdir.$att);
 
@@ -327,11 +332,10 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 	if ($X_admin && (file_exists($mailbbs_head_dir.$mailbbs_head_prefix.$id.".cgi")))
 	{
 		$header_link = " <a href=\"head_show.php?id=$id\" target=\"mailbbs\" title=\"ヘッダ情報表示\"><img src=\"option.gif\" alt=\"ヘッダ情報表示\" align=\"bottom\" /></a>";
-		$rotate_link = "[<a href=\"rotate.php?id=$id&amp;rc=3&amp;rf={$rt_url}\" title=\"イメージ左回転\">L</a>][<a href=\"rotate.php?id=$id&amp;rc=1&amp;rf={$rt_url}\" title=\"イメージ右回転\">R</a>] ";
 	}
 	else
 	{
-		$rotate_link = $header_link = "";
+		$header_link = "";
 	}
 	
 	// 承認用タグ
