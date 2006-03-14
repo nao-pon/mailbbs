@@ -184,7 +184,7 @@ for($j=1;$j<=$num;$j++) {
 		$rotate = 0;
 		if (preg_match("/(.+)(?:(r|l)@)$/i",$subject,$match))
 		{
-			$subject = $match[1];
+			$subject = rtrim($match[1]);
 			$rotate = (strtolower($match[2]) == "r")? 1 : 3;
 		}
 		
