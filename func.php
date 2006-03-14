@@ -377,4 +377,11 @@ function put_html_nox($str)
 	echo convert(str_replace(array("<br />","\r","\n"),array("<br>",""),$output));
 	exit;
 }
+
+function mailbbs_rotate($att,$rc)
+{
+	global $tmpdir,$thumb_dir;
+	HypCommonFunc::rotateImage($tmpdir.$att, $rc, 95);
+	HypCommonFunc::rotateImage($thumb_dir.$att, $rc, 85);
+}
 ?>

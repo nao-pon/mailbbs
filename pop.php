@@ -316,8 +316,7 @@ for($j=1;$j<=$num;$j++) {
 					//²óÅ¾»ØÄê
 					if ($rotate)
 					{
-						HypCommonFunc::rotateImage($tmpdir.$filename, $rotate);
-						HypCommonFunc::rotateImage($thumb_dir.$filename, $rotate);
+						mailbbs_rotate($filename, $rotate);
 					}
 				} else {
 					$write = false;

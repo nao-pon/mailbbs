@@ -41,8 +41,7 @@ foreach ($lines as $line)
 
 if ($att)
 {
-	HypCommonFunc::rotateImage($tmpdir.$att, $rc);
-	HypCommonFunc::rotateImage($thumb_dir.$att, $rc);
+	mailbbs_rotate($att,$rc);
 }
 done($rf);
 
