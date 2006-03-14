@@ -178,7 +178,18 @@ for($j=1;$j<=$num;$j++) {
 		while (eregi("(.*)=\?iso-[^\?]+\?Q\?([^\?]+)\?=(.*)",$subject,$regs)) {//MIME Q
 			$subject = $regs[1].quoted_printable_decode($regs[2]).$regs[3];
 		}
-		$subject = htmlspecialchars(convert($subject));
+		$subject = trim(convert($subject));
+		
+		//回転指定コマンド検出
+		$rotate = 0;
+		if (preg_match("/(.+)(?:(r|l)@)$/i",$subject,$match))
+		{
+			$subject = $match[1];
+			$rotate = (strtolower($match[2]) == "r")? 1 : 3;
+		}
+		
+		$subject = htmlspecialchars($subject);
+		
 		// 未承諾広告カット
 		if ($write && $deny_title){
 			if (preg_match($deny_title,$subject)) $write = false;
@@ -301,6 +312,12 @@ for($j=1;$j<=$num;$j++) {
 					$size = getimagesize($tmpdir.$filename);
 					if ($size[0] > $w || $size[1] > $h) {
 						thumb_create($tmpdir.$filename,$w,$h,$thumb_dir);
+					}
+					//回転指定
+					if ($rotate)
+					{
+						HypCommonFunc::rotateImage($tmpdir.$filename, $rotate);
+						HypCommonFunc::rotateImage($thumb_dir.$filename, $rotate);
 					}
 				} else {
 					$write = false;

@@ -224,7 +224,7 @@ else
 $myts =& MyTextSanitizer::getInstance();
 
 $title = "";
-
+$rt_url = rawurlencode($_SERVER['REQUEST_URI']);
 // ループ
 for ($i=$st; $i<$st+$page_def_flat; $i++)
 {
@@ -327,10 +327,11 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 	if ($X_admin && (file_exists($mailbbs_head_dir.$mailbbs_head_prefix.$id.".cgi")))
 	{
 		$header_link = " <a href=\"head_show.php?id=$id\" target=\"mailbbs\" title=\"ヘッダ情報表示\"><img src=\"option.gif\" alt=\"ヘッダ情報表示\" align=\"bottom\" /></a>";
+		$rotate_link = "[<a href=\"rotate.php?id=$id&amp;rc=3&amp;rf={$rt_url}\" title=\"イメージ左回転\">L</a>][<a href=\"rotate.php?id=$id&amp;rc=1&amp;rf={$rt_url}\" title=\"イメージ右回転\">R</a>] ";
 	}
 	else
 	{
-		$header_link = "";
+		$rotate_link = $header_link = "";
 	}
 	
 	// 承認用タグ
@@ -353,7 +354,7 @@ EOM;
 	//メイン表示
 	$mailbbs_body .= <<<EOM
 <table cellspacing=1 class="mailbbs_flat_table">
-	<tr><td class="mailbbs_flat_td_title"><span class="mailbbs_flat_span_title">No.$id <b>$subject</b></span></td><td class="mailbbs_flat_td_title" style="text-align:right;"><span class="mailbbs_flat_span_title">{$header_link}{$allow_tag}{$del}</span></td></tr>
+	<tr><td class="mailbbs_flat_td_title"><span class="mailbbs_flat_span_title">No.$id <b>$subject</b></span></td><td class="mailbbs_flat_td_title" style="text-align:right;"><span class="mailbbs_flat_span_title">{$rotate_link}{$header_link}{$allow_tag}{$del}</span></td></tr>
 	<tr><td class="mailbbs_flat_td_body" colspan="2">
 		<div class="mailbbs_flat_body_text">
 		$imgsrc $body
