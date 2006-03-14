@@ -41,13 +41,22 @@ foreach ($lines as $line)
 
 if ($att)
 {
-	mailbbs_rotate($att,$rc);
+	$ret = mailbbs_rotate($att,$rc);
 }
-done($rf);
+done($rf,$ret);
 
-function done($rf)
+function done($rf,$ret = false)
 {
 	if (!$rf) exit();
-	header("Location: ".preg_replace("#^(https?://[^/]+).*$#","$1",XOOPS_URL).$rf);
+	if (!$ret)
+	{
+		$mes = "イメージを回転できませんでした。";
+	}
+	else
+	{
+		$mes = "イメージを回転しました。<br />ブラウザでリロードしないと正しくイメージが表示されないかも知れません。";
+	}
+	redirect_header(preg_replace("#^(https?://[^/]+).*$#","$1",XOOPS_URL).$rf,2,$mes);
+	exit();
 }
 ?>

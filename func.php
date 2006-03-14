@@ -381,7 +381,13 @@ function put_html_nox($str)
 function mailbbs_rotate($att,$rc)
 {
 	global $tmpdir,$thumb_dir;
-	HypCommonFunc::rotateImage($tmpdir.$att, $rc, 95);
-	HypCommonFunc::rotateImage($thumb_dir.$att, $rc, 85);
+	
+	$ret = HypCommonFunc::rotateImage($thumb_dir.$att, $rc, 75);
+	
+	$size = filesize($tmpdir.$att) / 1024;
+	$quality = ($size < 6000)? 75 : 90;
+	$ret = HypCommonFunc::rotateImage($tmpdir.$att, $rc, $quality);
+	
+	return $ret;
 }
 ?>
