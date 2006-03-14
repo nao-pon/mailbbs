@@ -222,7 +222,7 @@ EOF;
 
 	// サムネイル画像を作成。
 	// 成功ならサムネイルのファイルのパス、不成功なら元ファイルパスを返す
-	function make_thumb($o_file, $s_file, $max_width, $max_height, $zoom_limit="5,90",$refresh=FALSE)
+	function make_thumb($o_file, $s_file, $max_width, $max_height, $zoom_limit="5,90", $refresh=FALSE, $quality = 75)
 	{
 		//GD のバージョンを取得
 		static $gd_ver = null;
@@ -287,7 +287,7 @@ EOF;
 					touch($s_file);
 					if ($s_ext == "jpg")
 					{
-						imagejpeg($dst_im,$s_file);
+						imagejpeg($dst_im,$s_file,$quality);
 					}
 					else
 					{
@@ -308,7 +308,7 @@ EOF;
 				$dst_im = $imagecreate($width,$height);
 				$imageresize ($dst_im,$src_im,0,0,0,0,$width,$height,$org_w,$org_h);
 				touch($s_file);
-				imagejpeg($dst_im,$s_file);
+				imagejpeg($dst_im,$s_file,$quality);
 				$o_file = $s_file;
 				break;
 			case "3": //png形式
@@ -343,7 +343,7 @@ EOF;
 				touch($s_file);
 				if ($s_ext == "jpg")
 				{
-					imagejpeg($dst_im,$s_file);
+					imagejpeg($dst_im,$s_file,$quality);
 				}
 				else
 				{
@@ -399,7 +399,7 @@ EOF;
 	}
 	
 	// イメージを回転
-	function rotateImage($src, $count = 1, $quality = 90)
+	function rotateImage($src, $count = 1, $quality = 95)
 	{
 		if (!file_exists($src)) {
 			return false;
