@@ -182,7 +182,7 @@ for($j=1;$j<=$num;$j++) {
 		
 		//回転指定コマンド検出
 		$rotate = 0;
-		if (preg_match("/(.+)(?:(r|l)@)$/i",$subject,$match))
+		if (preg_match("/(.*)(?:(r|l)@)$/i",$subject,$match))
 		{
 			$subject = rtrim($match[1]);
 			$rotate = (strtolower($match[2]) == "r")? 1 : 3;
