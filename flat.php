@@ -277,12 +277,13 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 	$body = $myts->displayTarea(str_replace(array("&lt;","&gt;","<br />"),array("<",">","\n"),$body));
 	
 	$rotate_link = "";
+	$rotate_onclick = " onClick=\"return(confirm('イメージを回転しますか?'));\"";
 	// 画像がある時IMGタグ
 	if(eregi("\.(gif|jpe?g|png|bmp)$",$att))
 	{
 		if ($X_admin)
 		{
-			$rotate_link = "[<a href=\"rotate.php?id=$id&amp;rc=3&amp;rf={$rt_url}\" title=\"イメージ左回転\">L</a>][<a href=\"rotate.php?id=$id&amp;rc=1&amp;rf={$rt_url}\" title=\"イメージ右回転\">R</a>] ";
+			$rotate_link = "[<a href=\"rotate.php?id=$id&amp;rc=3&amp;rf={$rt_url}\" title=\"イメージ左回転\"{$rotate_onclick}>L</a>][<a href=\"rotate.php?id=$id&amp;rc=1&amp;rf={$rt_url}\" title=\"イメージ右回転\"{$rotate_onclick}>R</a>] ";
 		}
 		$href = $tmpdir.rawurlencode($att);
 		$psize = @GetImageSize($tmpdir.$att);
