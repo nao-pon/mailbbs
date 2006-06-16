@@ -153,6 +153,10 @@ $page_def_flat = 7;
 // Wikiヘルパーを利用する
 $use_wiki_helper = 1;
 
+// コメントに書き込めるURLの数
+// コメントスパム対策です。 //t_miyabi add
+$mailbbs_commentspam_ch_setting = 3;
+
 //-----------------------------------+
 //list.php 設定
 //-----------------------------------+
