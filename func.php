@@ -179,7 +179,7 @@ function mailbbs_log_comment($lines,$nox=0){
 	global $delpass,$tmpdir,$log;
 	global $mailbbs_head_dir,$mailbbs_head_prefix,$mailbbs_nosign;
 	global $xoopsConfig,$notification;
-	global $xoopsHypTicket;
+	global $xoopsHypTicket, $mailbbs_commentspam_ch_setting;
 	
 	if ($nox)
 	{
@@ -206,6 +206,18 @@ function mailbbs_log_comment($lines,$nox=0){
 	for ($i=0; $i<count($lines); $i++) {
 		list($id, $ptime, $subject, $from, $body, $att, $comments) = explode("<>", trim($lines[$i]));
 		$_comment = (!empty($_POST['comment'][$id]))? $_POST['comment'][$id] : "";
+		
+		if (!empty($mailbbs_commentspam_ch_setting))
+		{
+			//t_miyabi add-->
+			$match = array();
+			if (preg_match_all("#https?://#i",$_comment ,$match,PREG_PATTERN_ORDER))
+			{
+				if (count($match[0]) > $mailbbs_commentspam_ch_setting) exit();
+			}
+			// <--t_miyabi add
+		}
+		
 		if ($_comment)
 		{
 			$_name = (!empty($_POST['name'][$id]))? $_POST['name'][$id] : "";
@@ -382,7 +394,7 @@ function mailbbs_rotate($att,$rc)
 {
 	global $tmpdir,$thumb_dir;
 	
-	$ret = HypCommonFunc::rotateImage($thumb_dir.$att, $rc, 75);
+	$ret = HypCommonFunc::rotateImage($thumb_dir.preg_replace("/\.[^\.]+$/",".jpg",$att), $rc, 75);
 	
 	$size = filesize($tmpdir.$att) / 1024;
 	$quality = ($size < 6000)? 75 : 90;
