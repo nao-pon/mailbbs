@@ -9,7 +9,7 @@ function b_mailbbs_show($option,$show_new=false)
 
 	include($mailbbs_path.'/config.php');
 	
-	include_once($mailbbs_path."include/hyp_common_func.php");
+	include_once($mailbbs_path."include/hyp_common/hyp_common_func.php");
 	
 	HypCommonFunc::str_to_entity($mail);
 

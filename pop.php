@@ -29,7 +29,7 @@
 /*-----------------*/
 include_once('../../mainfile.php');
 include_once('config.php');
-include_once("include/hyp_common_func.php");
+include_once("include/hyp_common/hyp_common_func.php");
 //include_once('thumb.php');
 /*-----------------*/
 

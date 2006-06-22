@@ -35,7 +35,7 @@ include(XOOPS_ROOT_PATH."/header.php");
 include_once("./version.php");
 include_once("./func.php");
 include_once("./include/hyp_tickets.php");
-include_once("./include/hyp_common_func.php");
+include_once("./include/hyp_common/hyp_common_func.php");
 
 HypCommonFunc::str_to_entity($mail);
 

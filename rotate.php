@@ -10,7 +10,7 @@ include("./config.php");
 include_once("./version.php");
 include_once("./func.php");
 //include_once("./include/hyp_tickets.php");
-include_once("./include/hyp_common_func.php");
+include_once("./include/hyp_common/hyp_common_func.php");
 
 $X_admin = 0;
 if ( is_object($xoopsUser) )

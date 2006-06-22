@@ -25,7 +25,7 @@ include("../../mainfile.php");
 include_once('config.php');
 include_once('func.php');
 include_once("./include/hyp_tickets.php");
-include_once("./include/hyp_common_func.php");
+include_once("./include/hyp_common/hyp_common_func.php");
 /*----------------------------*/
 
 //error_reporting(E_ALL);
