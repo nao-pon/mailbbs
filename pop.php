@@ -29,8 +29,8 @@
 /*-----------------*/
 include_once('../../mainfile.php');
 include_once('config.php');
+include_once('func.php');
 include_once("include/hyp_common/hyp_common_func.php");
-//include_once('thumb.php');
 /*-----------------*/
 
 // 遅延指定
@@ -465,6 +465,8 @@ function _sendcmd($cmd) {
 }
 /* ヘッダと本文を分割する */
 function mime_split($data) {
+	// 改行コード正規化
+	$data = preg_replace("/(\x0D\x0A|\x0D|\x0A)/","\r\n",$data);
 	$part = split("\r\n\r\n", $data, 2);
 	$part[0] = ereg_replace("\r\n[\t ]+", " ", $part[0]);
 	return $part;
@@ -527,6 +529,18 @@ function mailbbs_deny_log($head,$subject,$body){
 	global $mailbbs_denylog;
 	$subject = unhtmlentities($subject);
 	$body = unhtmlentities($body);
+	
+	// ログサイズ確認 (1Mでログ更新)
+	if (@filesize($mailbbs_denylog) > 1000000)
+	{
+		if (!preg_match("/^(.+)(\.[^.]*)$/",$mailbbs_denylog,$match))
+		{
+			$match[1] = $mailbbs_denylog;
+			$match[2] = "";
+		}
+		rename($mailbbs_denylog,$match[1].date("ymd").$match[2]);
+	}
+	
 	// 記録
 	$fp = fopen($mailbbs_denylog, "a+b");
 	flock($fp, LOCK_EX);
