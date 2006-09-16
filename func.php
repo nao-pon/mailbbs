@@ -221,11 +221,15 @@ function mailbbs_log_comment($lines,$nox=0){
 		if ($_comment)
 		{
 			$_name = (!empty($_POST['name'][$id]))? $_POST['name'][$id] : "";
+			
+			// 改行・タブ　コード置換
+			$_name = preg_replace("/(\x0D\x0A|\x0D|\x0A|\x09)+/"," ",$_name);
+			$_comment = preg_replace("/(\x0D\x0A|\x0D|\x0A|\x09)+/"," ",$_comment);
+			
 			if ($nox)
 			{
 				$_name = mb_convert_encoding($_name, "EUC-JP", "SJIS");
 				$_comment = mb_convert_encoding($_comment, "EUC-JP", "SJIS");
-				$_comment = preg_replace("/(\x0D\x0A|\x0D|\x0A)+/"," ",$_comment);
 			}
 			$m_comment = $_comment;
 			$m_name = $_name = ($_name)? $_name : $mailbbs_nosign;
