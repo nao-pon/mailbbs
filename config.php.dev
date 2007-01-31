@@ -157,6 +157,9 @@ $use_wiki_helper = 1;
 // コメントスパム対策です。 //t_miyabi add
 $mailbbs_commentspam_ch_setting = 3;
 
+// 英文のみのコメントを拒否する
+$no_english_only = 1;
+
 //-----------------------------------+
 //list.php 設定
 //-----------------------------------+

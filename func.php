@@ -154,7 +154,7 @@ function mailbbs_log_comment_del($lines){
 				else
 					$_lines[] = $line;
 			}
-			if (!done) $_lines[] = $ins;
+			if (!$done) $_lines[] = $ins;
 			$lines = $_lines;
 		}
 	}
@@ -207,8 +207,13 @@ function mailbbs_log_comment($lines,$nox=0){
 		list($id, $ptime, $subject, $from, $body, $att, $comments) = explode("<>", trim($lines[$i]));
 		$_comment = (!empty($_POST['comment'][$id]))? $_POST['comment'][$id] : "";
 		
-		if (!empty($mailbbs_commentspam_ch_setting))
-		{
+		// 英文のみの投稿はお断り
+		if (!empty($no_english_only)) {
+			if (preg_match('/^[\w\d\s\n\.\!\?\-\*\+\'\$\"\(\)\[\]\&:;]+$/',$_comment)) exit();
+		}
+		
+		// コメントに書き込めるURLの数をチェック
+		if (!empty($mailbbs_commentspam_ch_setting)) {
 			//t_miyabi add-->
 			$match = array();
 			if (preg_match_all("#https?://#i",$_comment ,$match,PREG_PATTERN_ORDER))
