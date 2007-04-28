@@ -2,7 +2,7 @@
 function b_mailbbs_show($option,$show_new=false)
 {
 	$max = (empty($option[0]))? 1 : intval($option[0]);
-	$listall = (empty($option[1]))? 0 : 1;
+	$attonly = (empty($option[1]))? 0 : 1;
 	
 	$mailbbs_path = XOOPS_ROOT_PATH."/modules/mailbbs/";
 	$mailbbs_url = XOOPS_URL."/modules/mailbbs/";
@@ -26,7 +26,7 @@ function b_mailbbs_show($option,$show_new=false)
 	foreach(file($mailbbs_path.$log) as $line)
 	{
 		$data = array_pad(explode("<>",trim($line)),8,"");
-		if (!$data[7] && ($listall || $data[5]))
+		if (!$data[7] && (!$attonly || (eregi("\.(gif|jpe?g|png|bmp)$",$data[5]) && file_exists($tmpdir.$data[5]))))
 		{
 			$lines[]= $line;
 		}
