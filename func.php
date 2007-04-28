@@ -180,6 +180,25 @@ function mailbbs_log_comment($lines,$nox=0){
 	global $mailbbs_head_dir,$mailbbs_head_prefix,$mailbbs_nosign;
 	global $xoopsConfig,$notification;
 	global $xoopsHypTicket, $mailbbs_commentspam_ch_setting;
+
+	// mbstring 調整
+	if (function_exists('mb_convert_encoding')) {
+		ini_set("output_buffering","Off");
+		ini_set("output_handler","null");
+		ini_set("default_charset","EUC-JP");
+		ini_set("mbstring.language","Japanese");
+		ini_set("mbstring.encoding_translation","off");
+		ini_set("mbstring.http_input","pass");
+		ini_set("mbstring.http_output","pass");
+		ini_set("mbstring.internal_encoding","EUC-JP");
+		ini_set("mbstring.substitute_character","none");
+	}
+
+	// 文字コード調整
+	if (!empty($_POST['enchint'])) {
+		$encode = mb_detect_encoding($_POST['enchint']);
+		mb_convert_variables('EUC-JP', $encode, $_POST);
+	}
 	
 	if ($nox)
 	{

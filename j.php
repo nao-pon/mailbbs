@@ -116,6 +116,7 @@ for ($i=$st; $i<$st+$page_def_j; $i++) {
 $ticket
 Name:<input type="text" name="name[{$tgt_id}]" size=10><br>
 <textarea name="comment[{$tgt_id}]"></textarea><br>
+<input type="hidden" name="enchint" size="ぷ">
 <input type="submit" name="b_comment[{$tgt_id}]" value="つっこみ">
 </form>
 EOM;
@@ -206,7 +207,7 @@ exit();
 function convert($str) {
 	if (function_exists('mb_convert_encoding'))
 	{
-		return mb_convert_encoding($str, "SJIS", "auto");
+		return mb_convert_encoding($str, "SJIS", "EUC-JP");
 	}
 	elseif (function_exists('JcodeConvert'))
 	{
