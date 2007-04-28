@@ -232,7 +232,7 @@ for($j=1;$j<=$num;$j++) {
 				if (preg_match($deny_lang,$mreg[1])) $write = false;
 			}
 		}
-		if (!eregi("Content-type: *([^;\n]+)", $m_head, $type)) continue;
+		if (!eregi("Content-type: *([^;\s]+)", $m_head, $type)) continue;
 		list($main, $sub) = explode("/", $type[1]);
 		// 本文をデコード
 		if (strtolower($main) == "text") {
@@ -241,14 +241,16 @@ for($j=1;$j<=$num;$j++) {
 			if (eregi("Content-Transfer-Encoding:.*quoted-printable", $m_head)) 
 				$m_body = quoted_printable_decode($m_body);
 			$text = trim(convert($m_body));
-			if ($sub == "html") $text = strip_tags($text);
+			if (strtolower($sub) == "html") {
+				$text = preg_replace('#<head>.*?</head>#is', '', $text);
+				$text = strip_tags($text);	
+			}
 			// 拒否本文のチェック
 			if ($write && isset($deny_body))
 			{
 				if (preg_match($deny_body,$text)) $write = false;
-			}			
-			$text = str_replace(">","&gt;",$text);
-			$text = str_replace("<","&lt;",$text);
+			}
+			$text = htmlspecialchars($text);
 			$text = str_replace("\r\n", "\r",$text);
 			$text = str_replace("\r", "\n",$text);
 			$text = preg_replace("/\n{2,}/", "\n\n", $text);
