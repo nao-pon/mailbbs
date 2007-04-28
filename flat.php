@@ -13,6 +13,8 @@ switch( $user_agent[0] )
 	case "UP.Browser" : include("j.php"); exit;
 	case "PDXGW" :  include("j.php"); exit;
 	case "J-PHONE" : include("j.php"); exit;
+	case "Vodafone" : include("j.php"); exit;
+	case "SoftBank" : include("j.php"); exit;
 }
 if(preg_match("/^KDDI/",$user_agent[0])){ include("j.php"); exit;}
 if(preg_match("/DDIPOCKET/",$user_agent[1])){ include("j.php"); exit;}
@@ -316,6 +318,7 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 $wiki_helper_js
 Name: <input type="text" name="name[$id]" size="10" value="$X_uname" />
 <input type="text" name="comment[$id]" size="36" />
+<input type="hidden" name="enchint" size="ぷ" />
 <input type="submit" name="b_comment[$id]" value="つっこみ" />
 EOM;
 	
