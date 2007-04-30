@@ -232,17 +232,17 @@ for($j=1;$j<=$num;$j++) {
 				if (preg_match($deny_lang,$mreg[1])) $write = false;
 			}
 		}
-		if (!eregi("Content-type: *([^;\s]+)", $m_head, $type)) continue;
+		if (!eregi("Content-type: *([^;\r\n]+)", $m_head, $type)) continue;
 		list($main, $sub) = explode("/", $type[1]);
 		// 本文をデコード
-		if (strtolower($main) == "text") {
+		if (strtolower(trim($main)) === "text") {
 			if (eregi("Content-Transfer-Encoding:.*base64", $m_head)) 
 				$m_body = base64_decode($m_body);
 			if (eregi("Content-Transfer-Encoding:.*quoted-printable", $m_head)) 
 				$m_body = quoted_printable_decode($m_body);
 			$text = trim(convert($m_body));
-			if (strtolower($sub) == "html") {
-				$text = preg_replace('#<head>.*?</head>#is', '', $text);
+			if (strtolower(trim($sub)) === "html" || preg_match('#^<html>.*</html>$#is', $text)) {
+				$text = preg_replace('#<head>.*</head>#is', '', $text);
 				$text = strip_tags($text);	
 			}
 			// 拒否本文のチェック
