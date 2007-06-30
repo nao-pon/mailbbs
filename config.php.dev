@@ -151,7 +151,9 @@ $nosubject = "No Title";
 $page_def_flat = 7;
 
 // Wikiヘルパーを利用する
-$use_wiki_helper = 1;
+$use_wiki_helper = 0;
+//$use_wiki_helper = 1; // PukiWikiMod を使用
+//$use_wiki_helper = 'xpwiki'; // xpwiki を使用(モジュールディレクトリ名)
 
 // コメントに書き込めるURLの数
 // コメントスパム対策です。 //t_miyabi add

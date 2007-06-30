@@ -28,7 +28,8 @@ include_once("./include/hyp_common/hyp_common_func.php");
 
 HypCommonFunc::str_to_entity($mail);
 
-if ($use_wiki_helper && file_exists(XOOPS_ROOT_PATH."/modules/pukiwiki/skin/default.ja.js"))
+$wiki_helper_js_top = '';
+if ($use_wiki_helper === 1 && file_exists(XOOPS_ROOT_PATH."/modules/pukiwiki/skin/default.ja.js"))
 {
 	// Wikiヘルパー
 	// for PukiWiki helper.
@@ -51,10 +52,12 @@ var pukiwiki_root_url = "{$url}/";
 -->
 </script>
 EOD;
-}
-else
-{
+} else if ($use_wiki_helper && file_exists(XOOPS_ROOT_PATH.'/modules/'.$use_wiki_helper.'/skin/loader.php')) {
+	$wiki_helper_js = '';
+	$wiki_helper_js_top = '<script type="text/javascript" src="'.XOOPS_URL.'/modules/'.$use_wiki_helper.'/skin/loader.php?src=default.ja.js"></script>';
+} else {
 	$wiki_helper_js = "";
+	$use_wiki_helper = 0;
 }
 
 // フッタHTML
@@ -216,7 +219,12 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 				$comment = substr($comment,0,strlen($comment)-10);
 				list($name,$comment) = explode("\t",$comment);
 				//echo $myts->displayTarea($name);
-				$comments .= "<input type=checkbox name=\"del_com[$id][$count]\" value=\"on\" title=\"削除チェック\"><strong>".preg_replace("/(^<p>|(<br \/>\n)?<\/p>$)/","",$myts->displayTarea($name))."</strong>: ".preg_replace("/(^<p>|(<br \/>\n)?<\/p>$)/","",$myts->displayTarea($comment))." - <span class=\"mailbbs_flat_comment_date\">".date('y/m/d G:i',$time)."</span><br />";
+				if ($use_wiki_helper === 0 || $use_wiki_helper === 1) {
+					$comments .= "<input type=checkbox name=\"del_com[$id][$count]\" value=\"on\" title=\"削除チェック\"><strong>".preg_replace("/(^<p>|(<br \/>\n)?<\/p>$)/","",$myts->displayTarea($name))."</strong>: ".preg_replace("/(^<p>|(<br \/>\n)?<\/p>$)/","",$myts->displayTarea($comment))." - <span class=\"mailbbs_flat_comment_date\">".date('y/m/d G:i',$time)."</span><br />";
+				} else {
+					$_text = '\'\'' . $name . '\'\': ' . $comment . ' - ' . '&font(class:mailbbs_flat_comment_date){'.date('y/m/d G:i',$time).'};';
+					$comments .= "<input type=checkbox name=\"del_com[$id][$count]\" value=\"on\" title=\"削除チェック\">" . $myts->displayTarea($_text);
+				}
 			}
 			$count++;
 		}
@@ -317,13 +325,14 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 <hr />
 $wiki_helper_js
 Name: <input type="text" name="name[$id]" size="10" value="$X_uname" />
-<input type="text" name="comment[$id]" size="36" />
+<input type="text" name="comment[$id]" size="36" rel="wikihelper" />
 <input type="hidden" name="enchint" size="ぷ" />
 <input type="submit" name="b_comment[$id]" value="つっこみ" />
 EOM;
 	
 	//メイン表示
 	$mailbbs_body .= <<<EOM
+$wiki_helper_js_top
 <table cellspacing=1 class="mailbbs_flat_table">
 	<tr><td class="mailbbs_flat_td_title"><span class="mailbbs_flat_span_title">No.$id <b>$subject</b></span></td><td class="mailbbs_flat_td_title" style="text-align:right;"><span class="mailbbs_flat_span_title">{$rotate_link}{$header_link}{$allow_tag}{$del}</span></td></tr>
 	<tr><td class="mailbbs_flat_td_body" colspan="2">
