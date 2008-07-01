@@ -3,23 +3,38 @@
 //include_once('config.php');
 /*----------------------------*/
 if (!defined('MAILBBS_REG')) exit();
-// 振り分け
-$user_agent= explode( "/", $_SERVER['HTTP_USER_AGENT']);
-switch( $user_agent[0] )
-{
-	case "DoCoMo" : include("j.php"); exit;
-	case "L-mode" : include("j.php"); exit;
-	case "ASTEL"  : include("j.php"); exit;
-	case "UP.Browser" : include("j.php"); exit;
-	case "PDXGW" :  include("j.php"); exit;
-	case "J-PHONE" : include("j.php"); exit;
-	case "Vodafone" : include("j.php"); exit;
-	case "SoftBank" : include("j.php"); exit;
-}
-if(preg_match("/^KDDI/",$user_agent[0])){ include("j.php"); exit;}
-if(preg_match("/DDIPOCKET/",$user_agent[1])){ include("j.php"); exit;}
 
 include("../../mainfile.php");
+
+// 振り分け
+if (! defined('HYP_K_TAI_RENDER')) {
+	$user_agent= explode( "/", $_SERVER['HTTP_USER_AGENT']);
+	switch( $user_agent[0] ){
+		case "DoCoMo" :
+		case "L-mode" :
+		case "ASTEL"  :
+		case "UP.Browser" :
+		case "PDXGW" :
+		case "J-PHONE" :
+		case "Vodafone" :
+		case "SoftBank" :
+			// clear output buffer
+			while( ob_get_level() ) {
+				ob_end_clean() ;
+			}
+			include("j.php");
+			exit;
+	}
+	if(preg_match("/^KDDI/",$user_agent[0]) || preg_match("/DDIPOCKET/",$user_agent[1])) {
+		// clear output buffer
+		while( ob_get_level() ) {
+			ob_end_clean() ;
+		}
+		include("j.php");
+		exit;
+	}
+}
+
 include_once("./version.php");
 include_once("./func.php");
 include_once("./include/hyp_tickets.php");

@@ -116,7 +116,7 @@ for ($i=$st; $i<$st+$page_def_j; $i++) {
 $ticket
 Name:<input type="text" name="name[{$tgt_id}]" size=10><br>
 <textarea name="comment[{$tgt_id}]"></textarea><br>
-<input type="hidden" name="enchint" size="¤×">
+<input type="hidden" name="enchint" value="¤×">
 <input type="submit" name="b_comment[{$tgt_id}]" value="¤Ä¤Ã¤³¤ß">
 </form>
 EOM;
