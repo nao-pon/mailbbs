@@ -7,7 +7,7 @@ if (!defined('MAILBBS_REG')) exit();
 include("../../mainfile.php");
 
 // ø∂§Í ¨§±
-if (! defined('HYP_K_TAI_RENDER')) {
+if (! defined('HYP_K_TAI_RENDER') || ! HYP_K_TAI_RENDER) {
 	$user_agent= explode( "/", $_SERVER['HTTP_USER_AGENT']);
 	switch( $user_agent[0] ){
 		case "DoCoMo" :
