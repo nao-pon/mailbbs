@@ -139,16 +139,25 @@ $lines = preg_replace("/\x0D\x0A|\x0D|\x0A/","\n",$lines);
 
 for($j=1;$j<=$num;$j++) {
 	$write = true;
-	$subject = $from = $text = $atta = $part = $attach = "";
+	$subject = $from = $text = $atta = $part = $attach = $charset = "";
 	list($head, $body) = mime_split($dat[$j]);
+
 	// To:ヘッダ確認
+	$treg = array();
+	$to_ok = FALSE;
 	if (preg_match("/(?:^|\n|\r)To:[ \t]*([^\r\n]+)/i", $head, $treg)){
-		$toreg = "/".quotemeta($mail)."/";
-		if (!preg_match($toreg,$treg[1])) $write = false; //投稿アドレス以外
-	} else {
-		// To: ヘッダがない
+		if ($mail === $treg[1]) {
+			$to_ok = TRUE;
+		} else if (preg_match("/(?:^|\n|\r)X-Forwarded-To:[ \t]*([^\r\n]+)/i", $head, $treg)) {
+			if ($mail === $treg[1]) {
+				$to_ok = TRUE;
+			}
+		}
+	}
+	if (! $to_ok) {
 		$write = false;
 	}
+
 	// メーラーのチェック
 	if ($write && (eregi("(X-Mailer|X-Mail-Agent):[ \t]*([^\r\n]+)", $head, $mreg))) {
 		if ($deny_mailer){
@@ -156,45 +165,17 @@ for($j=1;$j<=$num;$j++) {
 		}
 	}
 	// キャラクターセットのチェック
-	if ($write && (eregi("charset[\s]*=[\s]*([^\r\n]+)", $head, $mreg))) {
+	if ($write && (preg_match('/charset\s*=\s*"?([^"\r\n]+)/i', $head, $mreg))) {
+		$charset = $mreg[1];
 		if ($deny_lang){
-			if (preg_match($deny_lang,$mreg[1])) $write = false;
+			if (preg_match($deny_lang,$charset)) $write = false;
 		}
 	}
 	// 日付の抽出
 	eregi("Date:[ \t]*([^\r\n]+)", $head, $datereg);
 	$now = strtotime($datereg[1]);
 	if ($now == -1) $now = time();
-	// サブジェクトの抽出
-	if (preg_match("/\nSubject:[ \t]*(.+?)(\n[\w-_]+:|$)/is", $head, $subreg)) {
-		// 改行文字削除
-		$subject = str_replace(array("\r","\n"),"",$subreg[1]);
-		// エンコード文字間の空白を削除
-		$subject = preg_replace("/\?=[\s]+?=\?/","?==?",$subject);
-		
-		while (eregi("(.*)=\?iso-[^\?]+\?B\?([^\?]+)\?=(.*)",$subject,$regs)) {//MIME B
-			$subject = $regs[1].base64_decode($regs[2]).$regs[3];
-		}
-		while (eregi("(.*)=\?iso-[^\?]+\?Q\?([^\?]+)\?=(.*)",$subject,$regs)) {//MIME Q
-			$subject = $regs[1].quoted_printable_decode($regs[2]).$regs[3];
-		}
-		$subject = trim(convert($subject));
-		
-		//回転指定コマンド検出
-		$rotate = 0;
-		if (preg_match("/(.*)(?:(r|l)@)$/i",$subject,$match))
-		{
-			$subject = rtrim($match[1]);
-			$rotate = (strtolower($match[2]) == "r")? 1 : 3;
-		}
-		
-		$subject = htmlspecialchars($subject);
-		
-		// 未承諾広告カット
-		if ($write && $deny_title){
-			if (preg_match($deny_title,$subject)) $write = false;
-		}
-	}
+
 	// 送信者アドレスの抽出
 	if (eregi("From:[ \t]*([^\r\n]+)", $head, $freg)) {
 		$from = addr_search($freg[1]);
@@ -207,6 +188,45 @@ for($j=1;$j<=$num;$j++) {
 	if ($write){
 		for ($f=0; $f<count($deny); $f++)
 			if (eregi($deny[$f], $from)) $write = false;
+	}
+
+	// サブジェクトの抽出
+	if ($write && preg_match("/\nSubject:[ \t]*(.+?)(\n[\w-_]+:|$)/is", $head, $subreg)) {
+		// 改行文字削除
+		$subject = str_replace(array("\r","\n"),"",$subreg[1]);
+		// エンコード文字間の空白を削除
+		$subject = preg_replace("/\?=[\s]+?=\?/","?==?",$subject);
+		
+		while (eregi("(.*)=\?[^\?]+\?B\?([^\?]+)\?=(.*)",$subject,$regs)) {//MIME B
+			$subject = $regs[1].base64_decode($regs[2]).$regs[3];
+		}
+		while (eregi("(.*)=\?[^\?]+\?Q\?([^\?]+)\?=(.*)",$subject,$regs)) {//MIME Q
+			$subject = $regs[1].quoted_printable_decode($regs[2]).$regs[3];
+		}
+		//回転指定コマンド検出
+		$rotate = 0;
+		if (preg_match("/(.*)(?:(r|l)@)$/i",$subject,$match))
+		{
+			$subject = rtrim($match[1]);
+			$rotate = (strtolower($match[2]) == "r")? 1 : 3;
+		}
+
+		if (HypCommonFunc::get_version() >= '20081215') {
+			if (! class_exists('MobilePictogramConverter')) {
+				HypCommonFunc::loadClass('MobilePictogramConverter');
+			}
+			$mpc =& MobilePictogramConverter::factory_common();
+			$subject = $mpc->mail2ModKtai($subject, $from, $charset);
+		}
+		
+		$subject = trim(convert($subject));
+		
+		$subject = htmlspecialchars($subject);
+		
+		// 未承諾広告カット
+		if ($write && $deny_title){
+			if (preg_match($deny_title,$subject)) $write = false;
+		}
 	}
 
 	// マルチパートならばバウンダリに分割
@@ -227,9 +247,10 @@ for($j=1;$j<=$num;$j++) {
 		list($m_head, $m_body) = mime_split($multi);
 		$m_body = ereg_replace("\r\n\.\r\n$", "", $m_body);
 		// キャラクターセットのチェック
-		if ($write && (eregi("charset[\s]*=[\s]*([^\r\n]+)", $m_head, $mreg))) {
+		if ($write && (preg_match('/charset\s*=\s*"?([^"\r\n]+)/i', $m_head, $mreg))) {
+			$charset = $mreg[1];
 			if ($deny_lang){
-				if (preg_match($deny_lang,$mreg[1])) $write = false;
+				if (preg_match($deny_lang,$charset)) $write = false;
 			}
 		}
 		if (!eregi("Content-type: *([^;\r\n]+)", $m_head, $type)) continue;
@@ -240,6 +261,17 @@ for($j=1;$j<=$num;$j++) {
 				$m_body = base64_decode($m_body);
 			if (eregi("Content-Transfer-Encoding:.*quoted-printable", $m_head)) 
 				$m_body = quoted_printable_decode($m_body);
+			
+			if (HypCommonFunc::get_version() >= '20081215') {
+				if (! isset($mpc)) {
+					if (! class_exists('MobilePictogramConverter')) {
+						HypCommonFunc::loadClass('MobilePictogramConverter');
+					}
+					$mpc =& MobilePictogramConverter::factory_common();
+				}
+				$m_body = $mpc->mail2ModKtai($m_body, $from, $charset);
+			}
+			
 			$text = trim(convert($m_body));
 			if (strtolower(trim($sub)) === "html" || preg_match('#^<html>.*</html>$#is', $text)) {
 				$text = preg_replace('#<head>.*</head>#is', '', $text);
