@@ -193,7 +193,7 @@ for($j=1;$j<=$num;$j++) {
 	// サブジェクトの抽出
 	if ($write && preg_match("/\nSubject:[ \t]*(.+?)(\n[\w-_]+:|$)/is", $head, $subreg)) {
 		
-		if (HypCommonFunc::get_version() >= '20081215') {
+		if (method_exists('HypCommonFunc', 'get_version') && HypCommonFunc::get_version() >= '20081215') {
 			if (! class_exists('MobilePictogramConverter')) {
 				HypCommonFunc::loadClass('MobilePictogramConverter');
 			}
@@ -267,7 +267,7 @@ for($j=1;$j<=$num;$j++) {
 			if (eregi("Content-Transfer-Encoding:.*quoted-printable", $m_head)) 
 				$m_body = quoted_printable_decode($m_body);
 			
-			if (HypCommonFunc::get_version() >= '20081215') {
+			if (method_exists('HypCommonFunc', 'get_version') && HypCommonFunc::get_version() >= '20081215') {
 				if (! isset($mpc)) {
 					if (! class_exists('MobilePictogramConverter')) {
 						HypCommonFunc::loadClass('MobilePictogramConverter');
