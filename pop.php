@@ -192,13 +192,26 @@ for($j=1;$j<=$num;$j++) {
 
 	// サブジェクトの抽出
 	if ($write && preg_match("/\nSubject:[ \t]*(.+?)(\n[\w-_]+:|$)/is", $head, $subreg)) {
+		
+		if (HypCommonFunc::get_version() >= '20081215') {
+			if (! class_exists('MobilePictogramConverter')) {
+				HypCommonFunc::loadClass('MobilePictogramConverter');
+			}
+			$mpc =& MobilePictogramConverter::factory_common();
+		}
+
 		// 改行文字削除
 		$subject = str_replace(array("\r","\n"),"",$subreg[1]);
 		// エンコード文字間の空白を削除
 		$subject = preg_replace("/\?=[\s]+?=\?/","?==?",$subject);
 		
-		while (eregi("(.*)=\?[^\?]+\?B\?([^\?]+)\?=(.*)",$subject,$regs)) {//MIME B
-			$subject = $regs[1].base64_decode($regs[2]).$regs[3];
+		while (eregi("(.*)=\?([^\?]+)\?B\?([^\?]+)\?=(.*)",$subject,$regs)) {//MIME B
+			$_charset = $regs[2];
+			$p_subject = base64_decode($regs[3]);
+			if (isset($mpc)) {
+				$p_subject = $mpc->mail2ModKtai($p_subject, $from, $_charset);
+			}
+			$subject = $regs[1].$p_subject.$regs[4];
 		}
 		while (eregi("(.*)=\?[^\?]+\?Q\?([^\?]+)\?=(.*)",$subject,$regs)) {//MIME Q
 			$subject = $regs[1].quoted_printable_decode($regs[2]).$regs[3];
@@ -209,14 +222,6 @@ for($j=1;$j<=$num;$j++) {
 		{
 			$subject = rtrim($match[1]);
 			$rotate = (strtolower($match[2]) == "r")? 1 : 3;
-		}
-
-		if (HypCommonFunc::get_version() >= '20081215') {
-			if (! class_exists('MobilePictogramConverter')) {
-				HypCommonFunc::loadClass('MobilePictogramConverter');
-			}
-			$mpc =& MobilePictogramConverter::factory_common();
-			$subject = $mpc->mail2ModKtai($subject, $from, $charset);
 		}
 		
 		$subject = trim(convert($subject));
