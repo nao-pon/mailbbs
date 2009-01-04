@@ -1,3 +1,3 @@
 <?php
-define("_XOOPS_MAILBBS_VERSION", "2.3.8");
+define("_XOOPS_MAILBBS_VERSION", "2.3.9");
 ?>
