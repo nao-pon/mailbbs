@@ -94,11 +94,13 @@ function b_mailbbs_show($option,$show_new=false)
 	$img_tags = join("<hr />",$img_tags);
 	
 	//メイン部分
+	$url_mailbbs = XOOPS_URL . '/modules/mailbbs/';
 	$outhtml = <<<EOM
-<center>
+<link rel="stylesheet" href="{$url_mailbbs}css/default.css" type="text/css" media="screen" charset="shift_jis">
+<div class="mailbbs_block_content">
 <a href="mailto:$mail">投稿</a>&nbsp;|&nbsp;<a href="{$mailbbs_url}?mode=flat">フラット</a>&nbsp;|&nbsp;<a href="{$mailbbs_url}?mode=list">一覧</a>&nbsp;|&nbsp;<a href="{$mailbbs_url}?help">?</a><br />
 {$img_tags}
-</center>
+</div>
 EOM;
 	$block['content'] .= $outhtml;
 	return $block;
