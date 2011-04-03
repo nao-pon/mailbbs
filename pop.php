@@ -139,38 +139,46 @@ $lines = preg_replace("/\x0D\x0A|\x0D|\x0A/","\n",$lines);
 
 for($j=1;$j<=$num;$j++) {
 	$write = true;
-	$subject = $from = $text = $atta = $part = $attach = $charset = "";
+	$error = $subject = $from = $text = $atta = $part = $attach = $charset = "";
+	$bodys = array();
+	$bodys['plain'] = array();
+	$bodys['html'] = array();
+	$rawdata = $dat[$j];
 	list($head, $body) = mime_split($dat[$j]);
 
 	// To:ヘッダ確認
 	$treg = array();
 	$to_ok = FALSE;
 	if (preg_match("/(?:^|\n|\r)To:[ \t]*([^\r\n]+)/i", $head, $treg)){
-		if ($mail === $treg[1]) {
+		if (strpos($treg[1], $mail) !== FALSE) {
 			$to_ok = TRUE;
 		} else if (preg_match("/(?:^|\n|\r)X-Forwarded-To:[ \t]*([^\r\n]+)/i", $head, $treg)) {
-			if ($mail === $treg[1]) {
+			if (strpos($treg[1], $mail) !== FALSE) {
 				$to_ok = TRUE;
 			}
 		}
 	}
 	if (! $to_ok) {
 		$write = false;
+		$error = 'deny_to';
 	}
 
 	// メーラーのチェック
 	if ($write && (eregi("(X-Mailer|X-Mail-Agent):[ \t]*([^\r\n]+)", $head, $mreg))) {
 		if ($deny_mailer){
-			if (preg_match($deny_mailer,$mreg[2])) $write = false;
+			if (preg_match($deny_mailer,$mreg[2])) {
+				$write = false;
+				$error = 'deny_mailer';
+			}
 		}
 	}
 	// キャラクターセットのチェック
-	if ($write && (preg_match('/charset\s*=\s*"?([^"\r\n]+)/i', $head, $mreg))) {
-		$charset = $mreg[1];
-		if ($deny_lang){
-			if (preg_match($deny_lang,$charset)) $write = false;
-		}
-	}
+//	if ($write && (preg_match('/charset\s*=\s*"?([^";\s]+)/i', $head, $mreg))) {
+//		$charset = $mreg[1];
+//		if ($deny_lang){
+//			if (preg_match($deny_lang,$charset)) $write = false;
+//		}
+//	}
 	// 日付の抽出
 	eregi("Date:[ \t]*([^\r\n]+)", $head, $datereg);
 	$now = strtotime($datereg[1]);
@@ -187,7 +195,10 @@ for($j=1;$j<=$num;$j++) {
 	// 拒否アドレス
 	if ($write){
 		for ($f=0; $f<count($deny); $f++)
-			if (eregi($deny[$f], $from)) $write = false;
+			if (eregi($deny[$f], $from)) {
+				$write = false;
+				$error = 'deny_address';
+			}
 	}
 
 	// サブジェクトの抽出
@@ -230,7 +241,10 @@ for($j=1;$j<=$num;$j++) {
 		
 		// 未承諾広告カット
 		if ($write && $deny_title){
-			if (preg_match($deny_title,$subject)) $write = false;
+			if (preg_match($deny_title,$subject)) {
+				$write = false;
+				$error = 'deny_title';
+			}
 		}
 	}
 
@@ -252,14 +266,18 @@ for($j=1;$j<=$num;$j++) {
 		list($m_head, $m_body) = mime_split($multi);
 		$m_body = ereg_replace("\r\n\.\r\n$", "", $m_body);
 		// キャラクターセットのチェック
-		if ($write && (preg_match('/charset\s*=\s*"?([^"\r\n]+)/i', $m_head, $mreg))) {
+		if ($write && (preg_match('/charset\s*=\s*"?([^";\s]+)/i', $m_head, $mreg))) {
 			$charset = $mreg[1];
 			if ($deny_lang){
-				if (preg_match($deny_lang,$charset)) $write = false;
+				if (preg_match($deny_lang,$charset)) {
+					$write = false;
+					$error = 'deny_charset';
+				}
 			}
 		}
 		if (!eregi("Content-type: *([^;\r\n]+)", $m_head, $type)) continue;
 		list($main, $sub) = explode("/", $type[1]);
+		$sub = strtolower(trim($sub));
 		// 本文をデコード
 		if (strtolower(trim($main)) === "text") {
 			if (eregi("Content-Transfer-Encoding:.*base64", $m_head)) 
@@ -277,32 +295,36 @@ for($j=1;$j<=$num;$j++) {
 				$m_body = $mpc->mail2ModKtai($m_body, $from, $charset);
 			}
 			
-			$text = trim(convert($m_body));
-			if (strtolower(trim($sub)) === "html" || preg_match('#^<html>.*</html>$#is', $text)) {
-				$text = preg_replace('#<head>.*</head>#is', '', $text);
-				$text = strip_tags($text);	
+			$_text = trim(convert($m_body));
+			if ($sub === 'html' || preg_match('#^<html>.*</html>$#is', $_text)) {
+				$_text = preg_replace('#<head>.*</head>#is', '', $_text);
+				$_text = strip_tags($_text);	
 			}
 			// 拒否本文のチェック
 			if ($write && isset($deny_body))
 			{
-				if (preg_match($deny_body,$text)) $write = false;
+				if (preg_match($deny_body,$_text)) {
+					$write = false;
+					$error = 'deny_body';
+				}
 			}
-			$text = htmlspecialchars($text);
-			$text = str_replace("\r\n", "\r",$text);
-			$text = str_replace("\r", "\n",$text);
-			$text = preg_replace("/\n{2,}/", "\n\n", $text);
-			$text = str_replace("\n", "<br />", $text);
+			$_text = htmlspecialchars($_text);
+			$_text = str_replace("\r\n", "\r",$_text);
+			$_text = str_replace("\r", "\n",$_text);
+			$_text = preg_replace("/\n{2,}/", "\n\n", $_text);
+			$_text = str_replace("\n", "<br />", $_text);
+			
 			if ($write) {
 				// 電話番号削除
-				$text = eregi_replace("([[:digit:]]{11})|([[:digit:]\-]{13})", "", $text);
+				$_text = eregi_replace("([[:digit:]]{11})|([[:digit:]\-]{13})", "", $_text);
 				// 下線削除
-				$text = eregi_replace($del_ereg, "", $text);
+				$_text = eregi_replace($del_ereg, "", $_text);
 				// mac削除
-				$text = ereg_replace("Content-type: multipart/appledouble;[[:space:]]boundary=(.*)","",$text);
+				$_text = ereg_replace("Content-type: multipart/appledouble;[[:space:]]boundary=(.*)","",$_text);
 				// 広告等削除
 				if (is_array($word)) {
 					foreach ($word as $delstr)
-						$text = str_replace($delstr, "", $text);
+						$_text = str_replace($delstr, "", $_text);
 				}
 				// 削除する文言
 				if (is_array($del_reg))
@@ -311,34 +333,40 @@ for($j=1;$j<=$num;$j++) {
 					{
 						if ($delstr)
 						{
-							$text = preg_replace($delstr, "", $text);
+							$_text = preg_replace($delstr, "", $_text);
 						}
 					}
 				}
 				
-				if (strlen($text) > $body_limit) $text = substr($text, 0, $body_limit)."...";
+				if (strlen($_text) > $body_limit) $_text = substr($_text, 0, $body_limit)."...";
 				// 署名抽出
-				if (preg_match("/[\s　]*(by|BY|ｂｙ|ＢＹ)(,|\.|:|\s|　)?(.{1,20}?)(<br \/>|\n|$)/",$text,$reg_sign)){
+				if (preg_match("/[\s　]*(by|BY|ｂｙ|ＢＹ)(,|\.|:|\s|　)?(.{1,20}?)(<br \/>|\n|$)/",$_text,$reg_sign)){
 					// 署名保存
 					mailbbs_sign_set($from,htmlspecialchars($reg_sign[3]));
 				} else { //署名なしの場合
-					if ($text) $text .= mailbbs_sign_get($from);
+					if ($_text) $_text .= mailbbs_sign_get($from);
+				}
+				if ($_text) {
+					$type = ($sub === 'html')? 'html' : 'plain';
+					$bodys[$type][] = $_text;
 				}
 			}
 		}
 		if ($write) {
-			// ファイル名を抽出
-			if (eregi("name=\"?([^\"\n]+)\"?",$m_head, $filereg)) {
-				$filename = trim($filereg[1]);
-				// エンコード文字間の空白を削除
-				$filename = preg_replace("/\?=[\s]+?=\?/","?==?",$filename);
-				while (eregi("(.*)=\?iso-[^\?]+\?B\?([^\?]+)\?=(.*)",$filename,$regs)) {//MIME B
-					$filename = $regs[1].base64_decode($regs[2]).$regs[3];
-				}
-				$filename = time()."-".convert($filename);
-			}
 			// 添付データをデコードして保存
 			if (eregi("Content-Transfer-Encoding:.*base64", $m_head) && eregi($subtype, $sub)) {
+				$filename = '';
+				// ファイル名を抽出
+				if (eregi("name=\"?([^\"\n]+)\"?",$m_head, $filereg)) {
+					$filename = trim($filereg[1]);
+					// エンコード文字間の空白を削除
+					$filename = preg_replace("/\?=[\s]+?=\?/","?==?",$filename);
+					while (eregi("(.*)=\?iso-[^\?]+\?B\?([^\?]+)\?=(.*)",$filename,$regs)) {//MIME B
+						$filename = $regs[1].base64_decode($regs[2]).$regs[3];
+					}
+					$filename = str_replace(array('\\', '/', '?', ':', '*', '"', '<', '>', '|'), '', $filename);
+					$filename = time()."-".convert($filename);
+				}
 				$tmp = base64_decode($m_body);
 				if (!$filename) $filename = time().".$sub";
 				if (strlen($tmp) < $maxbyte && !eregi($viri, $filename) && $write) {
@@ -359,12 +387,23 @@ for($j=1;$j<=$num;$j++) {
 					}
 				} else {
 					$write = false;
+					$error = 'deny_filename';
 				}
 			}
 		}
 	}
-	if ($imgonly && !$attach) $write = false;
-	if (!$attach && !$text) $write = false;
+	
+	$_body = (! $bodys['plain'] && $bodys['html'])? $bodys['html'] : $bodys['plain'];
+	$text = join('<br /><br />', $_body);
+	
+	if ($write && $imgonly && !$attach) {
+		$write = false;
+		$error = 'no_attach';
+	}
+	if ($write && !$attach && !$text) {
+		$write = false;
+		$error = 'no_contents';
+	}
 	
 	//list($old,,,,,) = explode("<>", $lines[0]);
 	$old = array();
@@ -389,7 +428,7 @@ for($j=1;$j<=$num;$j++) {
 	} else {
 		// 拒否メールログ保存
 		if ($mailbbs_denylog_save)
-			mailbbs_deny_log($head,$subject,str_replace("<br />","\n",$text));
+			mailbbs_deny_log($head,$subject,str_replace("<br />","\n",$text),$error);
 	}
 }
 
@@ -564,7 +603,7 @@ function mailbbs_sign_get($from){
 	return "<br />by ".$mailbbs_nosign;
 }
 // 拒否メールログ保存
-function mailbbs_deny_log($head,$subject,$body){
+function mailbbs_deny_log($head,$subject,$body,$error){
 	global $mailbbs_denylog;
 	$subject = unhtmlentities($subject);
 	$body = unhtmlentities($body);
@@ -583,7 +622,7 @@ function mailbbs_deny_log($head,$subject,$body){
 	// 記録
 	$fp = fopen($mailbbs_denylog, "a+b");
 	flock($fp, LOCK_EX);
-	fputs($fp, "{$head}\n\nSubject: {$subject}\n\n{$body}\n\n\n");
+	fputs($fp, "Error: {$error}\n\n{$head}\n\nSubject: {$subject}\n\n{$body}\n\n\n");
 	fclose($fp);
 	return;
 }
