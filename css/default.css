@@ -114,3 +114,8 @@
 	color:#CCCCCC;
 	font-size:9px;
 }
+
+/* block */
+div.mailbbs_block_content {
+	text-align: center;
+}
