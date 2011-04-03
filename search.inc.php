@@ -44,8 +44,7 @@ function mailbbs_search($keys, $type='AND', $limit=0, $offset=0, $userid=0)
 			$ret[$i]['uid'] = 0;
 			if (function_exists("xoops_make_context"))
 			{
-				$queryarray = array();
-				$ret[$i]['context'] = xoops_make_context(htmlspecialchars(strip_tags(str_replace("<br />","\n",$data[4])." ".$data[6])),$queryarray);
+				$ret[$i]['context'] = xoops_make_context(strip_tags(str_replace("<br />"," ",join(' ', $source))), $keys);
 			}
 			$i++;
 		}
