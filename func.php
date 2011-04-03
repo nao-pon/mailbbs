@@ -180,6 +180,7 @@ function mailbbs_log_comment($lines,$nox=0){
 	global $mailbbs_head_dir,$mailbbs_head_prefix,$mailbbs_nosign;
 	global $xoopsConfig,$notification;
 	global $xoopsHypTicket, $mailbbs_commentspam_ch_setting;
+	global $no_english_only;
 
 	// mbstring 調整
 	if (function_exists('mb_convert_encoding')) {
@@ -226,22 +227,6 @@ function mailbbs_log_comment($lines,$nox=0){
 		list($id, $ptime, $subject, $from, $body, $att, $comments) = explode("<>", trim($lines[$i]));
 		$_comment = (!empty($_POST['comment'][$id]))? $_POST['comment'][$id] : "";
 		
-		// 英文のみの投稿はお断り
-		if (!empty($no_english_only)) {
-			if (preg_match('/^[\w\d\s\n\.\!\?\-\*\+\'\$\"\(\)\[\]\&:;]+$/',$_comment)) exit();
-		}
-		
-		// コメントに書き込めるURLの数をチェック
-		if (!empty($mailbbs_commentspam_ch_setting)) {
-			//t_miyabi add-->
-			$match = array();
-			if (preg_match_all("#https?://#i",$_comment ,$match,PREG_PATTERN_ORDER))
-			{
-				if (count($match[0]) > $mailbbs_commentspam_ch_setting) exit();
-			}
-			// <--t_miyabi add
-		}
-		
 		if ($_comment)
 		{
 			$_name = (!empty($_POST['name'][$id]))? $_POST['name'][$id] : "";
@@ -250,11 +235,31 @@ function mailbbs_log_comment($lines,$nox=0){
 			$_name = preg_replace("/(\x0D\x0A|\x0D|\x0A|\x09)+/"," ",$_name);
 			$_comment = preg_replace("/(\x0D\x0A|\x0D|\x0A|\x09)+/"," ",$_comment);
 			
-			if ($nox)
-			{
-				$_name = mb_convert_encoding($_name, "EUC-JP", "SJIS");
-				$_comment = mb_convert_encoding($_comment, "EUC-JP", "SJIS");
+			//if ($nox)
+			//{
+			//	$_name = mb_convert_encoding($_name, "EUC-JP", "SJIS");
+			//	$_comment = mb_convert_encoding($_comment, "EUC-JP", "SJIS");
+			//}
+			
+			// ぁ-ん, ァ-ヶ が含まれない場合はお断り(EUC-JP)
+			//if (! preg_match('/(?:\xA4[\xA1-\xF3]|\xA5[\xA1-\xF6])/', $_comment)) exit();
+			
+			// 英文のみの投稿はお断り
+			if (!empty($no_english_only)) {
+				if (preg_match('/^[\w\d\s\n\.\!\?\-\*\+\'\$\"\(\)\[\]\&:;]+$/',$_comment)) exit();
 			}
+			
+			// コメントに書き込めるURLの数をチェック
+			if (isset($mailbbs_commentspam_ch_setting) && $mailbbs_commentspam_ch_setting >= 0) {
+				//t_miyabi add-->
+				$match = array();
+				if (preg_match_all("#https?://#i",$_comment ,$match,PREG_PATTERN_ORDER))
+				{
+					if (count($match[0]) > $mailbbs_commentspam_ch_setting) exit();
+				}
+				// <--t_miyabi add
+			}
+			
 			$m_comment = $_comment;
 			$m_name = $_name = ($_name)? $_name : $mailbbs_nosign;
 			setcookie("mailbbs_un", $_name, time()+86400*365);//1年間
