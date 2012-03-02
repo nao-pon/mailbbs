@@ -2,7 +2,7 @@
 /****
 	写メールBBS by ToR 2002/09/25
 										 http://php.s3.to
-	
+
 	メール投稿型の掲示板です。添付画像に対応してます。
 	専用のメールアドレスを用意した方がいいです。
 	尚、受信したメールは削除されます。
@@ -51,7 +51,7 @@ if ($mailbbs_allowlog)
 			$allow_mails[] = $lines[3];
 		}
 		$allow_mails = array_unique($allow_mails);
-		
+
 		$fp = fopen($mailbbs_allowlog, "wb");
 		flock($fp, LOCK_EX);
 		fputs($fp, join("\n",$allow_mails));
@@ -110,7 +110,7 @@ if ($num == "0") {
 	fclose($sock);
 	// logファイルのファイルスタンプを更新
 	@touch($log);
-	
+
 	if (!$img_mode){
 		header("Location: $jump");
 	} else {
@@ -124,7 +124,7 @@ if ($num == "0") {
 for($i=1;$i<=$num;$i++) {
 	$line = _sendcmd("RETR $i");//RETR n -n番目のメッセージ取得（ヘッダ含
 	$dat[$i] = "";
-	while (!ereg("^\.\r\n",$line)) {//EOFの.まで読む
+	while ($line !== false && !preg_match("/^\.\r\n/",$line)) {//EOFの.まで読む
 		$line = fgets($sock,512);
 		$dat[$i].= $line;
 	}
@@ -164,7 +164,7 @@ for($j=1;$j<=$num;$j++) {
 	}
 
 	// メーラーのチェック
-	if ($write && (eregi("(X-Mailer|X-Mail-Agent):[ \t]*([^\r\n]+)", $head, $mreg))) {
+	if ($write && (preg_match("/^(X-Mailer|X-Mail-Agent):[ \t]*([^\r\n]+)/im", $head, $mreg))) {
 		if ($deny_mailer){
 			if (preg_match($deny_mailer,$mreg[2])) {
 				$write = false;
@@ -180,53 +180,43 @@ for($j=1;$j<=$num;$j++) {
 //		}
 //	}
 	// 日付の抽出
-	eregi("Date:[ \t]*([^\r\n]+)", $head, $datereg);
-	$now = strtotime($datereg[1]);
-	if ($now == -1) $now = time();
+	preg_match('/^Date:[ \t]*([^\r\n]+)/im', $head, $datereg);
+	$now = intval(strtotime($datereg[1]));
+	if ($now < 1) $now = time();
 
 	// 送信者アドレスの抽出
-	if (eregi("From:[ \t]*([^\r\n]+)", $head, $freg)) {
+	if (preg_match("/^From:[ \t]*([^\r\n]+)/im", $head, $freg)) {
 		$from = addr_search($freg[1]);
-	} elseif (eregi("Reply-To:[ \t]*([^\r\n]+)", $head, $freg)) {
+	} elseif (preg_match("/^Reply-To:[ \t]*([^\r\n]+)/im", $head, $freg)) {
 		$from = addr_search($freg[1]);
-	} elseif (eregi("Return-Path:[ \t]*([^\r\n]+)", $head, $freg)) {
+	} elseif (preg_match("/^Return-Path:[ \t]*([^\r\n]+)/im", $head, $freg)) {
 		$from = addr_search($freg[1]);
 	}
 	// 拒否アドレス
 	if ($write){
 		for ($f=0; $f<count($deny); $f++)
-			if (eregi($deny[$f], $from)) {
+			if (preg_match('/'.preg_quote($deny[$f]).'/i', $from)) {
 				$write = false;
 				$error = 'deny_address';
 			}
 	}
 
 	// サブジェクトの抽出
-	if ($write && preg_match("/\nSubject:[ \t]*(.+?)(\n[\w-_]+:|$)/is", $head, $subreg)) {
-		
+	if ($write && preg_match("/^Subject:[ \t]*(.+?)(\n[\w-_]+:|$)/ims", $head, $subreg)) {
+
 		if (method_exists('HypCommonFunc', 'get_version') && HypCommonFunc::get_version() >= '20081215') {
 			if (! class_exists('MobilePictogramConverter')) {
 				HypCommonFunc::loadClass('MobilePictogramConverter');
 			}
 			$mpc =& MobilePictogramConverter::factory_common();
+		} else {
+			$mpc = null;
 		}
 
 		// 改行文字削除
 		$subject = str_replace(array("\r","\n"),"",$subreg[1]);
-		// エンコード文字間の空白を削除
-		$subject = preg_replace("/\?=[\s]+?=\?/","?==?",$subject);
-		
-		while (eregi("(.*)=\?([^\?]+)\?B\?([^\?]+)\?=(.*)",$subject,$regs)) {//MIME B
-			$_charset = $regs[2];
-			$p_subject = base64_decode($regs[3]);
-			if (isset($mpc)) {
-				$p_subject = $mpc->mail2ModKtai($p_subject, $from, $_charset);
-			}
-			$subject = $regs[1].$p_subject.$regs[4];
-		}
-		while (eregi("(.*)=\?[^\?]+\?Q\?([^\?]+)\?=(.*)",$subject,$regs)) {//MIME Q
-			$subject = $regs[1].quoted_printable_decode($regs[2]).$regs[3];
-		}
+		$subject = mailbbs_mime_decode($subject, $mpc, $from);
+
 		//回転指定コマンド検出
 		$rotate = 0;
 		if (preg_match("/(.*)(?:(r|l)@)$/i",$subject,$match))
@@ -234,11 +224,11 @@ for($j=1;$j<=$num;$j++) {
 			$subject = rtrim($match[1]);
 			$rotate = (strtolower($match[2]) == "r")? 1 : 3;
 		}
-		
-		$subject = trim(convert($subject));
-		
+
+		$subject = trim($subject);
+
 		$subject = htmlspecialchars($subject);
-		
+
 		// 未承諾広告カット
 		if ($write && $deny_title){
 			if (preg_match($deny_title,$subject)) {
@@ -249,22 +239,22 @@ for($j=1;$j<=$num;$j++) {
 	}
 
 	// マルチパートならばバウンダリに分割
-	if (eregi("\nContent-type:.*multipart/",$head)) {
-		eregi('boundary="([^"]+)"', $head, $boureg);
+	if (preg_match("/^Content-type:.*multipart\//im",$head)) {
+		preg_match('/boundary="([^"]+)"/i', $head, $boureg);
 		$body = str_replace($boureg[1], urlencode($boureg[1]), $body);
 		$part = split("\r\n--".urlencode($boureg[1])."-?-?",$body);
-		if (eregi('boundary="([^"]+)"', $body, $boureg2)) {//multipart/altanative
+		if (preg_match('/boundary="([^"]+)"/i', $body, $boureg2)) {//multipart/altanative
 			$body = str_replace($boureg2[1], urlencode($boureg2[1]), $body);
-			$body = eregi_replace("\r\n--".urlencode($boureg[1])."-?-?\r\n","",$body);
-			$part = split("\r\n--".urlencode($boureg2[1])."-?-?",$body);
+			$body = preg_replace("/\r\n--".preg_quote(urlencode($boureg[1]))."-?-?\r\n/i","",$body);
+			$part = preg_split("/\r\n--".preg_quote(urlencode($boureg2[1]))."-?-?/",$body);
 		}
 	} else {
 		$part[0] = $dat[$j];// 普通のテキストメール
 	}
-	
+
 	foreach ($part as $multi) {
 		list($m_head, $m_body) = mime_split($multi);
-		$m_body = ereg_replace("\r\n\.\r\n$", "", $m_body);
+		$m_body = preg_replace("/\r\n\.\r\n$/", "", $m_body);
 		// キャラクターセットのチェック
 		if ($write && (preg_match('/charset\s*=\s*"?([^";\s]+)/i', $m_head, $mreg))) {
 			$charset = $mreg[1];
@@ -275,16 +265,16 @@ for($j=1;$j<=$num;$j++) {
 				}
 			}
 		}
-		if (!eregi("Content-type: *([^;\r\n]+)", $m_head, $type)) continue;
+		if (!preg_match("/^Content-type: *([^;\r\n]+)/im", $m_head, $type)) continue;
 		list($main, $sub) = explode("/", $type[1]);
 		$sub = strtolower(trim($sub));
 		// 本文をデコード
 		if (strtolower(trim($main)) === "text") {
-			if (eregi("Content-Transfer-Encoding:.*base64", $m_head)) 
+			if (preg_match("/^Content-Transfer-Encoding:.*base64/im", $m_head))
 				$m_body = base64_decode($m_body);
-			if (eregi("Content-Transfer-Encoding:.*quoted-printable", $m_head)) 
+			if (preg_match("/^Content-Transfer-Encoding:.*quoted-printable/im", $m_head))
 				$m_body = quoted_printable_decode($m_body);
-			
+
 			if (method_exists('HypCommonFunc', 'get_version') && HypCommonFunc::get_version() >= '20081215') {
 				if (! isset($mpc)) {
 					if (! class_exists('MobilePictogramConverter')) {
@@ -294,11 +284,11 @@ for($j=1;$j<=$num;$j++) {
 				}
 				$m_body = $mpc->mail2ModKtai($m_body, $from, $charset);
 			}
-			
-			$_text = trim(convert($m_body));
+
+			$_text = trim(convert($m_body, $charset));
 			if ($sub === 'html' || preg_match('#^<html>.*</html>$#is', $_text)) {
 				$_text = preg_replace('#<head>.*</head>#is', '', $_text);
-				$_text = strip_tags($_text);	
+				$_text = strip_tags($_text);
 			}
 			// 拒否本文のチェック
 			if ($write && isset($deny_body))
@@ -313,14 +303,14 @@ for($j=1;$j<=$num;$j++) {
 			$_text = str_replace("\r", "\n",$_text);
 			$_text = preg_replace("/\n{2,}/", "\n\n", $_text);
 			$_text = str_replace("\n", "<br />", $_text);
-			
+
 			if ($write) {
 				// 電話番号削除
-				$_text = eregi_replace("([[:digit:]]{11})|([[:digit:]\-]{13})", "", $_text);
+				$_text = preg_replace("/([[:digit:]\-]{13})/", "", $_text);
 				// 下線削除
-				$_text = eregi_replace($del_ereg, "", $_text);
+				$_text = preg_replace('/'.$del_ereg.'/i', "", $_text);
 				// mac削除
-				$_text = ereg_replace("Content-type: multipart/appledouble;[[:space:]]boundary=(.*)","",$_text);
+				$_text = preg_replace("#Content-type: multipart/appledouble;[[:space:]]boundary=(.*)#i","",$_text);
 				// 広告等削除
 				if (is_array($word)) {
 					foreach ($word as $delstr)
@@ -337,7 +327,7 @@ for($j=1;$j<=$num;$j++) {
 						}
 					}
 				}
-				
+
 				if (strlen($_text) > $body_limit) $_text = substr($_text, 0, $body_limit)."...";
 				// 署名抽出
 				if (preg_match("/[\s　]*(by|BY|ｂｙ|ＢＹ)(,|\.|:|\s|　)?(.{1,20}?)(<br \/>|\n|$)/",$_text,$reg_sign)){
@@ -354,36 +344,36 @@ for($j=1;$j<=$num;$j++) {
 		}
 		if ($write) {
 			// 添付データをデコードして保存
-			if (eregi("Content-Transfer-Encoding:.*base64", $m_head) && eregi($subtype, $sub)) {
-				$filename = '';
+			if (preg_match("/^Content-Transfer-Encoding:.*base64/im", $m_head) && preg_match('/'.$subtype.'$/i', $sub)) {
+
+				$filename = time();
 				// ファイル名を抽出
-				if (eregi("name=\"?([^\"\n]+)\"?",$m_head, $filereg)) {
-					$filename = trim($filereg[1]);
-					// エンコード文字間の空白を削除
-					$filename = preg_replace("/\?=[\s]+?=\?/","?==?",$filename);
-					while (eregi("(.*)=\?iso-[^\?]+\?B\?([^\?]+)\?=(.*)",$filename,$regs)) {//MIME B
-						$filename = $regs[1].base64_decode($regs[2]).$regs[3];
-					}
-					$filename = str_replace(array('\\', '/', '?', ':', '*', '"', '<', '>', '|'), '', $filename);
-					$filename = time()."-".convert($filename);
+				if (preg_match("/name=\"?([^\"\n]+)\"?/i",$m_head, $filereg)) {
+					$filename .= trim(mailbbs_mime_decode($filereg[1]));
+				} else {
+					$filename .= mt_rand();
 				}
+				$filename = md5($filename) . '.' . $sub;
+
 				$tmp = base64_decode($m_body);
-				if (!$filename) $filename = time().".$sub";
-				if (strlen($tmp) < $maxbyte && !eregi($viri, $filename) && $write) {
-					$fp = fopen($tmpdir.$filename, "wb");
-					fputs($fp, $tmp);
-					fclose($fp);
-					$link = rawurlencode($filename);
-					$attach = $filename;
-					//サムネイル
-					$size = getimagesize($tmpdir.$filename);
-					if ($size[0] > $w || $size[1] > $h) {
-						thumb_create($tmpdir.$filename,$w,$h,$thumb_dir);
-					}
-					//回転指定
-					if ($rotate)
-					{
-						mailbbs_rotate($filename, $rotate);
+				if (strlen($tmp) < $maxbyte && !preg_match('/'.$viri.'/i', $filename) && $write) {
+					if ($fp = fopen($tmpdir.$filename, "wb")) {
+						fputs($fp, $tmp);
+						fclose($fp);
+						$link = rawurlencode($filename);
+						$attach = $filename;
+						//サムネイル
+						$size = getimagesize($tmpdir.$filename);
+						if ($size[0] > $w || $size[1] > $h) {
+							thumb_create($tmpdir.$filename,$w,$h,$thumb_dir);
+						}
+						//回転指定
+						if ($rotate)
+						{
+							mailbbs_rotate($filename, $rotate);
+						}
+					} else {
+						$bodys['plain'][] = 'Error: Can not save an attachment file.';
 					}
 				} else {
 					$write = false;
@@ -392,10 +382,10 @@ for($j=1;$j<=$num;$j++) {
 			}
 		}
 	}
-	
+
 	$_body = (! $bodys['plain'] && $bodys['html'])? $bodys['html'] : $bodys['plain'];
 	$text = join('<br /><br />', $_body);
-	
+
 	if ($write && $imgonly && !$attach) {
 		$write = false;
 		$error = 'no_attach';
@@ -404,7 +394,7 @@ for($j=1;$j<=$num;$j++) {
 		$write = false;
 		$error = 'no_contents';
 	}
-	
+
 	//list($old,,,,,) = explode("<>", $lines[0]);
 	$old = array();
 	foreach($lines as $line)
@@ -413,7 +403,7 @@ for($j=1;$j<=$num;$j++) {
 		$old[] = $_old;
 	}
 	$old = max($old);
-	
+
 	$id = $old + 1;
 	if(trim($subject)=="") $subject = $nosubject;
 	$allow = ( !$mailbbs_allowlog || in_array($from,$allow_mails) )? 0 : 1;
@@ -421,7 +411,7 @@ for($j=1;$j<=$num;$j++) {
 
 	if ($write) {
 		array_unshift($lines, $line);
-		
+
 		// ヘッダ情報を記録
 		if ($mailbbs_head_save)
 			mailbbs_head_save($id,$head);
@@ -448,16 +438,16 @@ if ($write) {
 	flock($fp, LOCK_EX);
 	fputs($fp, implode('', $lines));
 	fclose($fp);
-	
+
 	// メール通知
 	if ($notification)
 	{
 		include('../../mainfile.php');
 		$xoopsMailer =& getMailer();
 		global $xoopsConfig;
-		
+
 		$m_allow = $m_delete = $m_attach = "";
-		
+
 		if ($attach)
 		{
 			$m_attach =  "\n添付ファイル:\n".XOOPS_URL."/modules/mailbbs/".preg_replace("#^\./#","",$tmpdir).$filename;
@@ -467,21 +457,21 @@ if ($write) {
 				$m_attach .= "\nサムネイル:\n".XOOPS_URL."/modules/mailbbs/".preg_replace("#^\./#","",$thumb_dir).$s_name;
 			}
 		}
-		
+
 		if ($mailbbs_allowlog)
 		{
 			if ($allow)
 				$m_allow = XOOPS_URL."/modules/mailbbs/?a=a&p=".md5($id.$now.$host.$user.$pass);
 			else
 				$m_allow = "承認済み";
-			
+
 			$m_delete = XOOPS_URL."/modules/mailbbs/?a=d&p=".md5($id.$now.$host.$user.$pass);
 		}
-		
+
 		$m_url = XOOPS_URL."/modules/mailbbs/?id=".$id;
-		
+
 		$m_text = str_replace(array("<br />","&lt;","&gt;"),array("\n","<",">"),$text);
-		
+
 		$m_subject = "写メールBBS投稿通知:ID[$id]";
 		$m_body =<<<_EOD
 承認: $m_allow
@@ -497,7 +487,7 @@ $subject
 ----
 $m_text
 _EOD;
-		
+
 		$xoopsMailer->useMail();
 		$xoopsMailer->setFromEmail($xoopsConfig['adminmail']);
 		$xoopsMailer->setFromName($xoopsConfig['sitename']);
@@ -507,7 +497,7 @@ _EOD;
 		$xoopsMailer->send();
 		$xoopsMailer->reset();
 	}
-	
+
 	// Send XML-RPC Update Ping by nao-pon
 	if (function_exists('xoops_update_rpc_ping') && !$allow) xoops_update_rpc_ping();
 
@@ -545,27 +535,25 @@ function _sendcmd($cmd) {
 function mime_split($data) {
 	// 改行コード正規化
 	$data = preg_replace("/(\x0D\x0A|\x0D|\x0A)/","\r\n",$data);
-	$part = split("\r\n\r\n", $data, 2);
-	$part[0] = ereg_replace("\r\n[\t ]+", " ", $part[0]);
+	$part = explode("\r\n\r\n", $data, 2);
+	$part[0] = preg_replace("/\r\n[\t ]+/", " ", $part[0]);
 	return $part;
 }
 /* メールアドレスを抽出する */
 function addr_search($addr) {
 	$fromreg = array();
-	if (eregi("[-!#$%&\'*+\\./0-9A-Z^_`a-z{|}~]+@[-!#$%&\'*+\\/0-9=?A-Z^_`a-z{|}~]+\.[-!#$%&\'*+\\./0-9=?A-Z^_`a-z{|}~]+", $addr, $fromreg)) {
+	if (preg_match("/[-!#$%&\'*+\\.\/0-9A-Z^_`a-z{|}~]+@[-!#$%&\'*+\\\/0-9=?A-Z^_`a-z{|}~]+\.[-!#$%&\'*+\\.\/0-9=?A-Z^_`a-z{|}~]+/i", $addr, $fromreg)) {
 		return $fromreg[0];
 	} else {
 		return false;
 	}
 }
 /* 文字コードコンバートauto→EUC-JP */
-function convert($str,$code="EUC-JP") {
+function convert($str, $form = 'auto') {
 	if (function_exists('mb_convert_encoding')) {
-		return mb_convert_encoding($str, $code, "auto");
-	} elseif (function_exists('JcodeConvert')) {
-		return JcodeConvert($str, 0, 1);
+		return mb_convert_encoding($str, _CHARSET, $form);
 	}
-	return true;
+	return $str;
 }
 
 // 署名保存
@@ -607,7 +595,7 @@ function mailbbs_deny_log($head,$subject,$body,$error){
 	global $mailbbs_denylog;
 	$subject = unhtmlentities($subject);
 	$body = unhtmlentities($body);
-	
+
 	// ログサイズ確認 (1Mでログ更新)
 	if (@filesize($mailbbs_denylog) > 1000000)
 	{
@@ -618,7 +606,7 @@ function mailbbs_deny_log($head,$subject,$body,$error){
 		}
 		rename($mailbbs_denylog,$match[1].date("ymd").$match[2]);
 	}
-	
+
 	// 記録
 	$fp = fopen($mailbbs_denylog, "a+b");
 	flock($fp, LOCK_EX);
@@ -669,4 +657,25 @@ function thumb_create($src, $W, $H, $thumb_dir="./")
 	HypCommonFunc::make_thumb($src, $s_file, $W, $H);
 	return;
 }
-?>
+
+function mailbbs_mime_decode($str, $mpc = null, $from_addr = null) {
+	// エンコード文字間の空白を削除
+	$str = preg_replace('/\?=[\s]+?=\?/', '?==?', $str);
+
+	$regs = array();
+	$_charset = 'AUTO';
+	while (preg_match('#(.*?)=\?([^\?]+?)\?([BQ])\?([^\?]+?)\?=(.*?)#',$str,$regs)) {//MIME B, Q
+		$_charset = $regs[2];
+		if ($regs[3] === 'B') {
+			$p_subject = base64_decode($regs[4]);
+		} else {
+			$p_subject = quoted_printable_decode($regs[4]);
+		}
+		if ($from_addr && is_object($mpc)) {
+			$p_subject = $mpc->mail2ModKtai($p_subject, $from_addr, $_charset);
+		}
+		$str = $regs[1].$p_subject.$regs[5];
+	}
+	$str = trim(mb_convert_encoding($str, _CHARSET, $_charset));
+	return $str;
+}
