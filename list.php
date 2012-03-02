@@ -64,7 +64,7 @@ FOOT;
 $X_admin = 0;
 if ( $xoopsUser ) {
 	$xoopsModule = XoopsModule::getByDirname("mailbbs");
-	if ( $xoopsUser->isAdmin($xoopsModule->mid()) ) { 
+	if ( $xoopsUser->isAdmin($xoopsModule->mid()) ) {
 		$X_admin = 1;
 	}
 }
@@ -80,9 +80,9 @@ if (isset($_GET['help'])){
 	$mailbbs_help = str_replace("_MAXSIZE_",$maxbyte/1000,$mailbbs_help);
 	if (!$mailbbs_allowlog) $allow_system = "";
 	$mailbbs_help = str_replace("_ALLOW_SYSTEM_",$allow_system,$mailbbs_help);
-	
+
 	echo $mailbbs_help;
-	
+
 	if (!$mailbbs_help_with){
 		echo "<hr /><a href=\"mailto:$mail\">投稿</a> | <a href=\"index.php?mode=flat\">フラット表示</a> | <a href=\"index.php?mode=list\">一覧表示</a><hr />";
 		echo $foot;
@@ -232,13 +232,13 @@ if ($prev < 0) $prev = 0;
 //if ($_GET['mode'] == "admin" || $X_admin) $mode = "&mode=admin";
 //ページ
 if ($st > 0) {
-  $mae = "<a href={$_SERVER['PHP_SELF']}?mode=list&pre&page=$prev#mailbbs id=\"mailbbs_list_link\" title=\"Prev\" style=\"font-size:14px;font-weight:900;\">←</a>";
+  $mae = "<a href=\"{$_SERVER['PHP_SELF']}?mode=list&pre&page=$prev#mailbbs\" id=\"mailbbs_list_link\" title=\"Prev\" style=\"font-size:14px;font-weight:900;\">←</a>";
 }
 else {
   $mae = "　";
 }
 if ($next < count($lines)) {
-  $tugi = "<a href={$_SERVER['PHP_SELF']}?mode=list&page=$next#mailbbs id=\"mailbbs_list_link\" title=\"Next\" style=\"font-size:14px;font-weight:900;\">→</a>";
+  $tugi = "<a href=\"{$_SERVER['PHP_SELF']}?mode=list&page=$next#mailbbs\" id=\"mailbbs_list_link\" title=\"Next\" style=\"font-size:14px;font-weight:900;\">→</a>";
 }
 else {
   $tugi = "　";

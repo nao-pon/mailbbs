@@ -67,7 +67,7 @@ var pukiwiki_root_url = "{$url}/";
 -->
 </script>
 EOD;
-} else if ($use_wiki_helper && file_exists(XOOPS_ROOT_PATH.'/modules/'.$use_wiki_helper.'/skin/loader.php')) {
+} else if (! isset($GLOBALS['hyp_preload_head_tag']) && $use_wiki_helper && file_exists(XOOPS_ROOT_PATH.'/modules/'.$use_wiki_helper.'/skin/loader.php')) {
 	$wiki_helper_js = '';
 	$wiki_helper_js_top = '<script type="text/javascript" src="'.XOOPS_URL.'/modules/'.$use_wiki_helper.'/skin/loader.php?src=default.ja.js"></script>';
 } else {
@@ -120,7 +120,7 @@ if (isset($_GET['help'])){
 	if (!$mailbbs_help_with){
 		$mailbbs_body .= "<hr /><a href=\"mailto:$mail\">投稿</a> | <a href=\"index.php?mode=flat\">フラット表示</a> | <a href=\"index.php?mode=list\">一覧表示</a><hr />";
 		$mailbbs_body .= $foot;
-		
+
 		if (filemtime($log) < time() - $mailbbs_limit_min * 60) {
 			$mailbbs_body = str_replace("_POP_IMG_","<div style=\"text-align:center;\"><img src=\"pop.php?img=1&time=".time()."\" width=70 height=16 /></div>",$mailbbs_body);
 		} else {
@@ -158,13 +158,13 @@ if (xoops_refcheck())
 		{
 			$lines = mailbbs_log_comment_del($lines);
 		}
-		
+
 		// 記事削除処理
 		if (isset($_POST['del']))
 		{
 			$lines = mailbbs_log_del($lines);
 		}
-		
+
 		// 記事承認処理
 		if ($X_admin && isset($_POST['allow']))
 		{
@@ -220,7 +220,7 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 		$_st = $i;
 		$title = $subject."-";
 	}
-	
+
 	if ($comments)
 	{
 		$c_array = explode("</>",$comments);
@@ -248,7 +248,7 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 	$date = date("y/m/d G:i", $ptime);
 	$size = (int)(@filesize($tmpdir.$att) / 1024 * 10);
 	$size = $size / 10;
-	
+
 	// 本文E-Mailをリンク
 	// mb系関数が使える場合は以下2行と置き換え。それ以外は文字化けするかも
 	//mb_regex_encoding("SJIS");
@@ -256,14 +256,14 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 	//$body = eregi_replace("([-a-z0-9_.]+@[-a-z0-9_.]+)", "<a href='mailto:\\1'>\\1</a>", $body);
 	// URLリンク
 	//$body = ereg_replace("(https?|ftp)(://[[:alnum:]\+\$\;\?\.%,!#~*/:@&=_-]+)","<a href=\"\\1\\2\" target=_top>\\1\\2</a>",$body);
-	
+
 	// 記事リンク
 	$link_url = XOOPS_URL."/modules/mailbbs/index.php?flat&id=";
 	$body = preg_replace("/&gt;(?:&gt;)?\s*(\d+)/","[url={$link_url}$1][b]$0[/b][/url]",$body);
-	
+
 	// XOOPS でサニタイズ
 	$body = $myts->displayTarea(str_replace(array("&lt;","&gt;","<br />"),array("<",">","\n"),$body));
-	
+
 	$rotate_link = "";
 	$rotate_onclick = " onClick=\"return(confirm('イメージを回転しますか?'));\"";
 	// 画像がある時IMGタグ
@@ -308,7 +308,7 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 			$imgsrc = "<img src=\"$href\" class=\"mailbbs_flat_img\" alt=\"$size_tag({$size}KB)\" $psize_tag>";
 			if ($isresize) $imgsrc = "<a href=\"$href\">$imgsrc</a>";
 		}
-		
+
 	}//それ以外はリンク
 	elseif(trim($att)!="")
 	{
@@ -316,7 +316,7 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 	}
 
 	$del = ' <input type=checkbox name="del['.$id.']" value="on">:削除';
-	
+
 	// ヘッダ情報リンクタグ
 	if ($X_admin && (file_exists($mailbbs_head_dir.$mailbbs_head_prefix.$id.".cgi")))
 	{
@@ -326,7 +326,7 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 	{
 		$header_link = "";
 	}
-	
+
 	// 承認用タグ
 	if ($X_admin && $allow)
 	{
@@ -334,7 +334,7 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 	}
 	else
 		$allow_tag = "";
-	
+
 	//コメント用
 	$comment = <<<EOM
 <hr />
@@ -344,7 +344,7 @@ Name: <input type="text" name="name[$id]" size="10" value="$X_uname" />
 <input type="hidden" name="enchint" size="ぷ" />
 <input type="submit" name="b_comment[$id]" value="つっこみ" />
 EOM;
-	
+
 	//メイン表示
 	$mailbbs_body .= <<<EOM
 $wiki_helper_js_top
@@ -385,11 +385,11 @@ else
 //ページ
 if ($_GET['page'])
 {
-	$mailbbs_body .= "<a href={$_SERVER['PHP_SELF']}?mode=flat&page=$prev>←PREV</a>&nbsp;&nbsp;";
+	$mailbbs_body .= "<a href=\"{$_SERVER['PHP_SELF']}?mode=flat&page=$prev\">←PREV</a>&nbsp;&nbsp;";
 }
 if ($next < count($lines))
 {
-	$mailbbs_body .= "<a href={$_SERVER['PHP_SELF']}?mode=flat&page=$next>NEXT→</a>";
+	$mailbbs_body .= "<a href=\"{$_SERVER['PHP_SELF']}?mode=flat&page=$next\">NEXT→</a>";
 }
 $mailbbs_body .= "</form>";
 $mailbbs_body .= $foot;
