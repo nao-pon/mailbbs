@@ -1,10 +1,16 @@
 <?php
-// $Id: hyp_common_func.php,v 1.5 2006/09/05 14:18:28 nao-pon Exp $
+// $Id: hyp_common_func.php,v 1.6 2012/03/02 07:45:29 nao-pon Exp $
 // HypCommonFunc Class by nao-pon http://hypweb.net
 ////////////////////////////////////////////////
 
 if( ! class_exists( 'HypCommonFunc' ) )
 {
+
+if (defined('XOOPS_TRUST_PATH') && is_file(XOOPS_TRUST_PATH.'/class/hyp_common/hyp_common_func.php')) {
+
+	require_once XOOPS_TRUST_PATH.'/class/hyp_common/hyp_common_func.php';
+
+} else {
 
 class HypCommonFunc
 {
@@ -1199,6 +1205,6 @@ if (file_exists(dirname(__FILE__)."/execpath.inc.php"))
 // ImageMagick のパスを指定 (多くは /usr/bin/ ?)
 HypCommonFunc::set_exec_path("/usr/bin/");
 
-
+}
 }
 ?>
