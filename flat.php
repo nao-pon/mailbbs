@@ -315,7 +315,7 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 		$body.= '<br />添付：<a href='.$tmpdir.rawurlencode($att).'>'.$att.'</a>('.$size.'KB)';
 	}
 
-	$del = ' <input type=checkbox name="del['.$id.']" value="on">:削除';
+	$del = ' <input id="mailbbs_del_'.$id.'" type="checkbox" name="del['.$id.']" value="on" /><label for="mailbbs_del_'.$id.'">:削除</label>';
 
 	// ヘッダ情報リンクタグ
 	if ($X_admin && (file_exists($mailbbs_head_dir.$mailbbs_head_prefix.$id.".cgi")))
