@@ -330,9 +330,10 @@ for($j=1;$j<=$num;$j++) {
 
 				if (strlen($_text) > $body_limit) $_text = substr($_text, 0, $body_limit)."...";
 				// 署名抽出
-				if (preg_match("/[\s　]*(by|BY|ｂｙ|ＢＹ)(,|\.|:|\s|　)?(.{1,20}?)(<br \/>|\n|$)/",$_text,$reg_sign)){
+				$_sign_text = mb_convert_kana($_text, 'as', _CHARSET);
+				if (preg_match("/\bby(?:,|\.|:|\s+)?(.{1,20})\b/is",$_sign_text,$reg_sign)){
 					// 署名保存
-					mailbbs_sign_set($from,htmlspecialchars($reg_sign[3]));
+					mailbbs_sign_set($from, htmlspecialchars($reg_sign[1]));
 				} else { //署名なしの場合
 					if ($_text) $_text .= mailbbs_sign_get($from);
 				}
@@ -542,7 +543,7 @@ function mime_split($data) {
 /* メールアドレスを抽出する */
 function addr_search($addr) {
 	$fromreg = array();
-	if (preg_match("/[-!#$%&\'*+\\.\/0-9A-Z^_`a-z{|}~]+@[-!#$%&\'*+\\\/0-9=?A-Z^_`a-z{|}~]+\.[-!#$%&\'*+\\.\/0-9=?A-Z^_`a-z{|}~]+/i", $addr, $fromreg)) {
+	if (preg_match('/[!#$%&\'*+\\.\/0-9A-Z^_`a-z{|}~-]+@[!#$%&\'*+\\\\\/0-9=?A-Z^_`a-z{|}~-]+\.[!#$%&\'*+\\.\/0-9=?A-Z^_`a-z{|}~-]+/', $addr, $fromreg)) {
 		return $fromreg[0];
 	} else {
 		return false;
@@ -559,11 +560,12 @@ function convert($str, $form = 'auto') {
 // 署名保存
 function mailbbs_sign_set($from,$sign){
 	global $mailbbs_signs;
-	$_from = quotemeta($from);
+	$sign = str_replace("\t", ' ', $sign);
+	$_from = preg_quote($from, '/');
 	$_signs = @file($mailbbs_signs);
 	$signs = trim($_signs[0]);
 	$regptn = "/(^|\t)".$_from." ([^\t]+)(\t|$)/";
-	if (preg_match($regptn,$signs)){
+	if (preg_match($regptn, $signs)){
 		$regptn = "/((^|\t)".$_from." )([^\t]+)(\t|$)/";
 		$signs = preg_replace($regptn,"$1$sign$4",$signs);
 	} else {
@@ -580,7 +582,7 @@ function mailbbs_sign_set($from,$sign){
 // 署名取得
 function mailbbs_sign_get($from){
 	global $mailbbs_signs,$mailbbs_nosign;
-	$from = quotemeta($from);
+	$from = preg_quote($from, '/');
 	$_signs = @file($mailbbs_signs);
 	$signs = trim($_signs[0]);
 	$regptn = "/(^|\t)".$from." ([^\t]+)(\t|$)/";
