@@ -261,7 +261,7 @@ for($j=1;$j<=$num;$j++) {
 			if ($deny_lang){
 				if (preg_match($deny_lang,$charset)) {
 					$write = false;
-					$error = 'deny_charset';
+					$error = 'deny_charset: '.$charset."\n".'m_head:'."\n".$m_head;
 				}
 			}
 		}
@@ -357,7 +357,8 @@ for($j=1;$j<=$num;$j++) {
 				$filename = md5($filename) . '.' . $sub;
 
 				$tmp = base64_decode($m_body);
-				if (strlen($tmp) < $maxbyte && !preg_match('/'.$viri.'/i', $filename) && $write) {
+				$filesize = strlen($tmp);
+				if ($filesize < $maxbyte && !preg_match('/'.$viri.'/i', $filename) && $write) {
 					if ($fp = fopen($tmpdir.$filename, "wb")) {
 						fputs($fp, $tmp);
 						fclose($fp);
@@ -378,7 +379,11 @@ for($j=1;$j<=$num;$j++) {
 					}
 				} else {
 					$write = false;
-					$error = 'deny_filename';
+					if ($filesize < $maxbyte) {
+						$error = 'filesize too large: '. $filesize;
+					} else {
+						$error = 'deny_filename: '.$filename."\n".'m_head:'."\n".$m_head;
+					}
 				}
 			}
 		}
