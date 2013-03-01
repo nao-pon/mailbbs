@@ -53,7 +53,7 @@ function b_mailbbs_show($option,$show_new=false)
 		$l_body = str_replace("\"","",$body);
 		//if ($_GET['mode'] == "admin" || $X_admin) $del = '<input type=checkbox name="del['.$id.']" value=on>';
 		// 画像がある時
-		if(eregi("\.(gif|jpe?g|png|bmp)$",$att) && file_exists($tmpdir.$att)){
+		if (preg_match('/\.(gif|jpe?g|png|bmp)$/i', $att) && file_exists($tmpdir.$att)){
 			$href = $tmpdir.rawurlencode($att);
 			$size = GetImageSize($tmpdir.$att);
 			$size[0] = ($size[0])? $size[0]:$w;
