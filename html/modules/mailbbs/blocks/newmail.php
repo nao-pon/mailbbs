@@ -26,7 +26,7 @@ function b_mailbbs_show($option,$show_new=false)
 	foreach(file($mailbbs_path.$log) as $line)
 	{
 		$data = array_pad(explode("<>",trim($line)),8,"");
-		if (!$data[7] && (!$attonly || (eregi("\.(gif|jpe?g|png|bmp)$",$data[5]) && file_exists($tmpdir.$data[5]))))
+		if (!$data[7] && (!$attonly || (preg_match("/\.(gif|jpe?g|png|bmp)$/i",$data[5]) && file_exists($tmpdir.$data[5]))))
 		{
 			$lines[]= $line;
 		}

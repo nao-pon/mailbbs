@@ -171,7 +171,7 @@ for ($i=$st; $view<$page_def_list; $i++) {
   $del = ($X_admin)? '<input type=checkbox name="del['.$id.']" value=on>' : "";
 
   // 画像がある時
-  if(eregi("\.(gif|jpe?g|png|bmp)$",$att) && file_exists($tmpdir.$att)){
+  if(preg_match("/\.(gif|jpe?g|png|bmp)$/i",$att) && file_exists($tmpdir.$att)){
     $href = $tmpdir.rawurlencode($att);
     $size = @GetImageSize($tmpdir.$att);
     $size[0] = (isset($size[0]))? $size[0]:$w;

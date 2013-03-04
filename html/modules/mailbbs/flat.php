@@ -267,7 +267,7 @@ for ($i=$st; $i<$st+$page_def_flat; $i++)
 	$rotate_link = "";
 	$rotate_onclick = " onClick=\"return(confirm('イメージを回転しますか?'));\"";
 	// 画像がある時IMGタグ
-	if(eregi("\.(gif|jpe?g|png|bmp)$",$att))
+	if(preg_match("/\.(gif|jpe?g|png|bmp)$/i",$att))
 	{
 		if ($X_admin)
 		{
