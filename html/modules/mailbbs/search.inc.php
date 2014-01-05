@@ -75,7 +75,7 @@ function mailbbs_get_search_words($words,$special=FALSE)
 	// $special : htmlspecialchars()を通すか
 	$quote_func = create_function('$str',$special ?
 		'return preg_quote($str,"/");' :
-		'return preg_quote(htmlspecialchars($str),"/");'
+		'return preg_quote(htmlspecialchars($str, ENT_COMPAT, _CHARSET),"/");'
 	);
 	// LANG=='ja'で、mb_convert_kanaが使える場合はmb_convert_kanaを使用
 	$convert_kana = create_function('$str,$option',

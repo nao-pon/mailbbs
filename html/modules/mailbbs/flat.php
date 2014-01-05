@@ -96,7 +96,7 @@ else
 {
 	$X_uname = (!empty($_COOKIE["mailbbs_un"]))? $_COOKIE["mailbbs_un"] : $mailbbs_nosign;
 }
-$X_uname = htmlspecialchars($X_uname);
+$X_uname = htmlspecialchars($X_uname, ENT_COMPAT, _CHARSET);
 
 $_GET['page'] = (isset($_GET['page']))? $_GET['page'] : 0;
 $mailbbs_denylink = ($X_admin)? " | <a href=\"denylog.php\" target=\"mailbbs\">ÅÐÏ¿µñÈÝ¥á¡¼¥ë</a>" : "";

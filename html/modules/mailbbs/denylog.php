@@ -26,7 +26,7 @@ if (file_exists($mailbbs_denylog)){
 	echo "ºÃ•·°º•ÎBBS for XOOPS - ≈–œøµÒ»›•·°º•Î<hr />\n";
 	echo "<div style=\"font-size:12px\">\n";
 	foreach($log as $line){
-		echo nl2br(htmlspecialchars($line));
+		echo nl2br(htmlspecialchars($line, ENT_COMPAT, _CHARSET));
 	}
 	echo "</div><hr />";
 } else {

@@ -227,7 +227,7 @@ for($j=1;$j<=$num;$j++) {
 
 		$subject = trim($subject);
 
-		$subject = htmlspecialchars($subject);
+		$subject = htmlspecialchars($subject, ENT_COMPAT, _CHARSET);
 
 		// Ì¤¾µÂú¹­¹ð¥«¥Ã¥È
 		if ($write && $deny_title){
@@ -298,7 +298,7 @@ for($j=1;$j<=$num;$j++) {
 					$error = 'deny_body';
 				}
 			}
-			$_text = htmlspecialchars($_text);
+			$_text = htmlspecialchars($_text, ENT_COMPAT, _CHARSET);
 			$_text = str_replace("\r\n", "\r",$_text);
 			$_text = str_replace("\r", "\n",$_text);
 			$_text = preg_replace("/\n{2,}/", "\n\n", $_text);
@@ -331,9 +331,9 @@ for($j=1;$j<=$num;$j++) {
 				if (strlen($_text) > $body_limit) $_text = substr($_text, 0, $body_limit)."...";
 				// ½ðÌ¾Ãê½Ð
 				$_sign_text = mb_convert_kana($_text, 'as', _CHARSET);
-				if (preg_match("/\bby(?:,|\.|:|\s+)?(.{1,20})\b/is",$_sign_text,$reg_sign)){
+				if (preg_match("/\bby(?:,|\.|:|\s+)?(.{1,20})(?:\b|\z)/is",$_sign_text,$reg_sign)){
 					// ½ðÌ¾ÊÝÂ¸
-					mailbbs_sign_set($from, htmlspecialchars($reg_sign[1]));
+					mailbbs_sign_set($from, htmlspecialchars(trim($reg_sign[1]), ENT_COMPAT, _CHARSET));
 				} else { //½ðÌ¾¤Ê¤·¤Î¾ì¹ç
 					if ($_text) $_text .= mailbbs_sign_get($from);
 				}
