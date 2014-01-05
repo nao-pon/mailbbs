@@ -10,6 +10,7 @@ $modversion['image'] = "logo.gif";
 $modversion['dirname'] = "mailbbs";
 include(XOOPS_ROOT_PATH."/modules/".$modversion['dirname']."/version.php");
 $modversion['version'] = _XOOPS_MAILBBS_VERSION;
+$modversion['detailed_version'] = _XOOPS_MAILBBS_VERSION;
 
 // Admin things
 $modversion['hasAdmin'] = 1;
